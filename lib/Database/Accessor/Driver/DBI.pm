@@ -1,6 +1,9 @@
+package Database::Accessor::Driver::DBI;
 
 BEGIN {
+    $Database::Accessor::Driver::DBI::VERSION = "0.01";
 }
+use Moose;
 with(qw( Database::Accessor::Roles::Driver));
 
 sub execute {
@@ -12,7 +15,9 @@ sub execute {
 
 }
 
+sub DB_Class {
     my $self = shift;
+    return 'DBI::db';
 }
 
 1;
