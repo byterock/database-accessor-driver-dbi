@@ -5,6 +5,7 @@ use Data::Dumper;
 use Cwd;
 my $dir = getcwd;
 warn("dir=".$dir);
+
 my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>"db"});
 my @sql = qw {DROP TABLE IF EXISTS users;
               CREATE TABLE users ( username TEXT, address TEXT);
