@@ -1,25 +1,25 @@
 #!perl
-use lib ('D:\GitHub\database-accessor\lib');
-use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
-use lib ('D:\GitHub\database-accessor-driver-dbi\t\lib');
-
-
-#use Test::More tests => 3;
-#use Test::Fatal;
+use Test::More;
+use Test::Fatal;
 use DBI;
 use Database::Accessor;
+use Test::Utils;
 use Test::DB::User;
-use Data::Dumper;
-do 'scripts\new_db.pl';
 
-exit;
+my $utils = Test::Utils->new();
+$utils->create_users_table();
 my $user = Test::DB::User->new();
+my $container =  {username=>'user_new',
+                  address =>'address_new'};
 
-warn("Dumper ".Dumper($user));
-exit;
-#my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>"db"});
-#my $container = {};
+eval{
+   $user->create($utils->connect(),
+                 $container);
+};
 
-my $user->create($dbh,{username=>'user_new',
-                       address =>'address_new'});
-                  
+if ($@) {
+    fail("Create function error=$@");
+}
+else {
+    pass("Create function");
+}
