@@ -21,9 +21,7 @@ sub connect {
 sub create_users_table {
   my $self = shift;
   my @sql = ("DROP TABLE IF EXISTS users",
-             "CREATE TABLE users ( username TEXT, address TEXT)",
-             "INSERT INTO users VALUES ( 'user1',  1)",
-             "INSERT INTO users VALUES ( 'user2',  2)");
+             "CREATE TABLE users ( username TEXT, address TEXT)");
              
   $self->do_sql(@sql); }
 sub do_sql {
