@@ -8,10 +8,11 @@ BEGIN {
     require_ok('Database::Accessor') || print "Bail out!";
     require_ok('DBI')                || print "Bail out!";
 }
-my $in_hash = { view => { name  => 'name' }};
+my $in_hash = { da_compose_only=>1,
+                view => { name  => 'name' }};
 my $da      = Database::Accessor->new($in_hash);
 my $return  = {};
-my $dbh = DBI->connect("dbi:ExampleP:", '', '');
+my $dbh     = DBI->connect("dbi:ExampleP:", '', '');
 
 eval { $da->retrieve( $dbh, $return ); };
 
