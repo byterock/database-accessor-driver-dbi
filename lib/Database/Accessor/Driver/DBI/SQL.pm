@@ -36,6 +36,7 @@ use constant OPEN_PARENTHESES  =>Database::Accessor::Driver::DBI::SQL::OPEN_PARE
 use constant CLOSE_PARENS      =>')';
 use constant CLOSE_PARENTHESES =>Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
 use constant PARAM             =>'?';
+use constant SET               =>'SET'; 
 use constant OPERATION_TYPES   => {
    Database::Accessor::Driver::DBI::SQL::SELECT => 1,
    Database::Accessor::Driver::DBI::SQL::INSERT => 1,

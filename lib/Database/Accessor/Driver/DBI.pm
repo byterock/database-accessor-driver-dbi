@@ -56,15 +56,24 @@ sub execute {
 
     eval {
         $sth = $dbh->prepare($sql);
-
+        foreach my $index (1..$self->param_count()){
+         $sth->bind_param( $index,$self->params->[$index-1]->value );
+        }
+        my $rows_effected = $sth->execute();
+        $result->effected($rows_effected);
+        $dbh->commit()
+          if ($dbh->{AutoCommit} == 0 and !$self->da_no_effect);
     };
+
     if ($@) {
        $result->is_error(1);
        $result->error($@);
        return 0;
     }
+    return 1;
     
     
+
     my @params; 
        # = $self->_params();
 
@@ -272,12 +281,45 @@ sub _select {
 # DADNote I use one sub for each of the 4 crud functions
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
 
+sub _update {
+    
+    my $self             = shift;
+    my ($container)      = @_;
+    my @fields           = ();
+   # my @values           = ();
+    
+      
+    my $update_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::UPDATE, $self->view()->name());
+    
+    $self->da_warn("_update","Update clause='$update_clause'")
+      if $self->da_warning()>=5;
+
+
+    foreach my $key ( keys( %{$container} ) ) {
+        my $field = $self->get_element_by_name(sub {$_->name eq $key});
+        push(@fields,join(" ",$field->name,'=',Database::Accessor::Driver::DBI::SQL::PARAM));
+        my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
+        $self->add_param($param);
+      #  push(@values,$param->value());
+       
+    }
+   
+    my $set_clause = join(" ",Database::Accessor::Driver::DBI::SQL::SET,
+                        join(",",@fields)
+                        );
+                        
+    $self->da_warn("_update"," Set clause='$set_clause'")
+      if $self->da_warning()>=5;
+    
+    return join(" ",$update_clause,$set_clause);
+
+}
 sub _insert {
     
     my $self             = shift;
     my ($container)      = @_;
     my @fields           = ();
-    my @values           = ();
+   # my @values           = ();
     
       
     my @fields_to_insert = $self->elements();
@@ -291,7 +333,8 @@ sub _insert {
         my $field = $self->get_element_by_name(sub {$_->name eq $key});
         push(@fields,$field->name);
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
-        push(@values,$param->value());
+        $self->add_param($param);
+      #  push(@values,$param->value());
        
     }
    

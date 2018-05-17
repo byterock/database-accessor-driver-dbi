@@ -10,7 +10,10 @@ use parent qw(Database::Accessor);
 return $class->$orig({
                  view=>{name=>'user'},
              elements=>[{name=> 'username'},
-                        {name=> 'address'}]});
+                        {name=> 'address'}],
+   update_requires_condition=>0,
+   delete_requires_condition=>0
+                  });
   };
   
                         
