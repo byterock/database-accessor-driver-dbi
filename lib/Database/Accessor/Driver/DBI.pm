@@ -285,16 +285,30 @@ sub DB_Class {
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
 
 
+
+sub _delete {
+    
+    my $self             = shift;
+    my ($container)      = @_;
+    my @fields           = ();
+
+    my $delete_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::DELETE
+                                   ,Database::Accessor::Driver::DBI::SQL::FROM
+                                   ,$self->view()->name());
+    
+    $self->da_warn("_delete","Delete clause='$delete_clause'")
+      if $self->da_warning()>=5;
+    return $delete_clause;
+
+}
+
 sub _select {
     
     my $self             = shift;
     my ($container)      = @_;
     my @fields           = ();
-   # my @values           = ();
-
 
     foreach my $field ( @{$self->elements()} ) {
-        warn("field=".Dumper($field));
         push(@fields,join(" ",
                         $field->view
                         ."."
