@@ -57,12 +57,20 @@ sub execute {
     eval {
         $sth = $dbh->prepare($sql);
         foreach my $index (1..$self->param_count()){
-         $sth->bind_param( $index,$self->params->[$index-1]->value );
+           $sth->bind_param( $index,$self->params->[$index-1]->value );
         }
-        my $rows_effected = $sth->execute();
-        $result->effected($rows_effected);
-        $dbh->commit()
-          if ($dbh->{AutoCommit} == 0 and !$self->da_no_effect);
+        
+        if ($action eq Database::Accessor::Constants::RETRIEVE) {
+           $sth->execute();
+           my $results = $sth->fetchall_arrayref(); 
+           $result->set($results);
+        }
+        else {
+           my $rows_effected = $sth->execute();
+           $result->effected($rows_effected);
+           $dbh->commit()
+            if ($dbh->{AutoCommit} == 0 and !$self->da_no_effect);
+        }
     };
 
     if ($@) {
@@ -273,13 +281,53 @@ sub DB_Class {
     return 'DBI::db';
 }
 
-sub _select {
-    my $self = shift;
-    return 1;
-}
-
 # DADNote I use one sub for each of the 4 crud functions
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
+
+
+sub _select {
+    
+    my $self             = shift;
+    my ($container)      = @_;
+    my @fields           = ();
+   # my @values           = ();
+
+
+    foreach my $field ( @{$self->elements()} ) {
+        warn("field=".Dumper($field));
+        push(@fields,join(" ",
+                        $field->view
+                        ."."
+                        .$field->name,
+                        ($field->alias) 
+                          ? join(" ",
+                                 Database::Accessor::Driver::DBI::SQL::AS, 
+                                 $field->alias())
+                          :""));
+       
+    }
+    my $select_clause    = join(" ",
+                               Database::Accessor::Driver::DBI::SQL::SELECT,
+                               join(",",@fields));
+    
+    $self->da_warn("_select","Select clause='$select_clause'")
+      if $self->da_warning()>=5;
+
+    my $from_clause = join(" ",
+                       Database::Accessor::Driver::DBI::SQL::FROM,
+                       ($self->view()->alias) 
+                         ?  join(" ",
+                                 Database::Accessor::Driver::DBI::SQL::AS, 
+                                 $self->view()->alias())
+                         : $self->view()->name 
+                       );
+                        
+    $self->da_warn("_select"," From clause='$from_clause'")
+      if $self->da_warning()>=5;
+    
+    return join(" ",$select_clause,$from_clause);
+
+}
 
 sub _update {
     

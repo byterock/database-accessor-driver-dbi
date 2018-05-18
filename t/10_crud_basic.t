@@ -45,3 +45,16 @@ else {
 }
 
 ok($user->result()->effected == 2,"Two rows effected");
+
+eval{
+   $user->retrieve($utils->connect());
+};
+
+if ($@) {
+    fail("retrieve function error=$@");
+}
+else {
+    pass("retrieve function");
+}
+
+ok(scalar($user->result()->set) == 2,"Two rows returned");

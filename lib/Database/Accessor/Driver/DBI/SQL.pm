@@ -12,6 +12,7 @@ use constant DELETE            =>'DELETE';
 use constant FROM              =>'FROM';
 use constant VALUES            =>'VALUES';
 
+use constant AS                =>'AS';
 use constant ON                =>'ON';
 use constant IN                =>'IN';
 use constant NOT_IN            =>'NOT IN';

@@ -37,10 +37,10 @@ sub connect {
     $dbh->do($sql);
   }
   
-     # my $sth = $dbh->prepare("SELECT * FROM users");
+     # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;
 # $sth->dump_results if $sth->{NUM_OF_FIELDS};
- $dbh->disconnect;
+ # $dbh->disconnect;
 }
 
 1;
