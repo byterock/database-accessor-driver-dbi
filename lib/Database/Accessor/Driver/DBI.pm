@@ -358,7 +358,7 @@ sub _update {
 
 
     foreach my $key ( keys( %{$container} ) ) {
-        my $field = $self->get_element_by_name(sub {$_->name eq $key});
+        my $field = $self->get_element_by_name( $key);
         push(@fields,join(" ",$field->name,'=',Database::Accessor::Driver::DBI::SQL::PARAM));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
@@ -392,7 +392,7 @@ sub _insert {
 
 
     foreach my $key ( keys( %{$container} ) ) {
-        my $field = $self->get_element_by_name(sub {$_->name eq $key});
+        my $field = $self->get_element_by_name( $key);
         push(@fields,$field->name);
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);

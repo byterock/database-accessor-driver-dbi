@@ -14,10 +14,7 @@ use Cwd;
 
 sub connect {
   my $self = shift;
-  # my $dir = getcwd;
-  warn("connect db".$self->db);
   
-  
   my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>$self->db});
   return $dbh;
 }
