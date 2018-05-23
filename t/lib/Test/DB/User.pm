@@ -1,25 +1,26 @@
 package Test::DB::User;
 
 use Data::Dumper;
+use Database::Accessor;
 use Moose;
-use parent qw(Database::Accessor);
 
-
-
-  around BUILDARGS => sub {
-      my $orig = shift;
-      my $class = shift;
-      my $ops   = shift(@_);       
-return $class->$orig({
-                 view=>{name=>'user'},
-             elements=>[{view=>'user',
-                         name=> 'username'},
-                        {name=> 'address',
-                         view=>'user'}],
-   update_requires_condition=>0,
-   delete_requires_condition=>0
-                  });
-  };
-  
-                        
+has table => ( is  => 'ro',
+               isa => 'Str',
+               default=>'user');
+has fields => ( isa => 'ArrayRef',
+            is  => 'ro',
+            default => sub { [{view=>'user',
+                         name=>'username'},
+                         {name=>'address',
+                          view=>'user'}] },
+        );
+        
+sub da {
+   my $self = shift;
+   my $da = Database::Accessor->new({view=>{name=>$self->table},
+                                    elements=>$self->fields,
+                                    update_requires_condition=>0,
+                                    delete_requires_condition=>0});
+                
+}
 1;

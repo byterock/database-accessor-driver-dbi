@@ -29,6 +29,8 @@ sub execute {
     my $self = shift;
     my ( $result, $action, $dbh, $container, $opt ) = @_;
 
+    local $dbh->{RaiseError} = 1
+      unless($self->da_raise_error_off);
 
     my $sql;
     if ( $action eq Database::Accessor::Constants::CREATE ) {
