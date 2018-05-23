@@ -21,26 +21,29 @@ ok($user->create($utils->connect(),
                  $container),"Create function");
 ok($user->result()->effected == 1,"One row effected");
 
-delete($container->{username});# ='Uchanged';
+delete($container->{username});
 $container->{address} ='Achanged';
-
+$user->add_condition({left  =>{ name  => 'username',
+                                view  => 'user'},
+                      right =>{ value => 'user_new'}
+                    });
+                    
+                  
 ok($user->update($utils->connect(),$container),"Update function");
-ok($user->result()->effected == 2,"Two rows effected");
+ok($user->result()->effected == 1,"one row effected");
 ok($user->retrieve($utils->connect()),"retrieve function");
 ok(scalar(@{$user->result()->set}) == 1,"One row returned");
 unless($user->result()->is_error) {
-   ok($user->result()->set->[0]->[0] eq 'Uchanged','username changed');
    ok($user->result()->set->[0]->[1] eq 'Achanged','address changed');
 }
 else{
-   fail("No Result set->[0]->[0]");
    fail("No Result set->[0]->[1]");
 }
 ok($user->delete($utils->connect()),"delete function");
 ok($user->result()->effected == 1,"One row Deleted");
 ok($user->retrieve($utils->connect()),"retrieve function");
 unless($user->result()->is_error) {
-  ok(scalar(@{$user->result()->set}) == 0,"Nothing in DB");
+  ok(scalar(@{$user->result()->set}) == 1,"one row in DB");
 }else{
    fail("No Result set");
 }

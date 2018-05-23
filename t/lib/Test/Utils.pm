@@ -16,13 +16,13 @@ sub connect {
   my $self = shift;
   
   my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>$self->db});
-  return $dbh;
+# print $dbh->{sql_handler}, "\n";  return $dbh;
 }
 sub create_users_table {
   my $self = shift;
   my @sql = ("DROP TABLE IF EXISTS user",
-             "CREATE TABLE user ( username TEXT, address TEXT)",
-             "INSERT INTO user VALUES ( 'user1',  1)");
+             "CREATE TABLE user ( user.username TEXT, user.address TEXT)",
+             "INSERT INTO user VALUES ( 'user.user1',  1)");
              
   $self->do_sql(@sql); 
   

@@ -46,6 +46,8 @@ sub execute {
         $sql = $self->_select();
     }
     
+    $sql .= $self->_where_clause();
+
     $result->query($sql);
 
     $self->da_warn('execute',"SQL=$sql")
@@ -287,6 +289,37 @@ sub DB_Class {
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
 
 
+sub _where_clause {
+    my $self = shift;
+    return ""
+      unless ( $self->condition_count );
+    return
+      $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
+        $self->conditions );
+}
+
+sub _predicate_clause {
+    my $self = shift;
+    my ( $clause_type, $conditions ) = @_;
+    my $clause           = " $clause_type ";
+    my $predicate_clause = "";
+
+    foreach my $condtion ( @{$conditions} ) {
+        foreach my $predicate ( @{ $condtion->{predicates} } ) {
+            $predicate_clause .= join( " ",
+                $predicate->left->view . "." . $predicate->left->name,
+                $predicate->operator,
+                "'" . $predicate->right->value . "'",
+                $predicate->condition )
+
+        }
+    }
+    $self->da_warn( "_predicate_clause",
+        $clause_type . " clause='$predicate_clause'" )
+      if $self->da_warning() >= 5;
+    return join( " ", $clause, $predicate_clause );
+}
+
 
 sub _delete {
     
@@ -361,7 +394,10 @@ sub _update {
 
     foreach my $key ( keys( %{$container} ) ) {
         my $field = $self->get_element_by_name( $key);
-        push(@fields,join(" ",$field->name,'=',Database::Accessor::Driver::DBI::SQL::PARAM));
+        push(@fields,join(" ",
+                         $field->view
+                         .'.'
+                         .$field->name,'=',Database::Accessor::Driver::DBI::SQL::PARAM));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
       #  push(@values,$param->value());
@@ -395,7 +431,9 @@ sub _insert {
 
     foreach my $key ( keys( %{$container} ) ) {
         my $field = $self->get_element_by_name( $key);
-        push(@fields,$field->name);
+        push(@fields, $field->view
+                         .'.'
+                         .$field->name);
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
       #  push(@values,$param->value());
