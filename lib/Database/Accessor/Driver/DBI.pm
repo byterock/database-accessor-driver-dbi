@@ -46,9 +46,10 @@ sub execute {
         $sql = $self->_select();
     }
     
-    $sql .= $self->_where_clause();
+    $sql .= $self->_where_clause()
+     if ($action ne Database::Accessor::Constants::CREATE);
 
-    $result->query($sql);
+    $result->query($sql);
 
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
@@ -427,7 +428,7 @@ sub _update {
       if $self->da_warning()>=5;
 
 
-    foreach my $key ( keys( %{$container} ) ) {
+    foreach my $key ( sort(keys( %{$container} )) ) {
         my $field = $self->get_element_by_name( $key);
         push(@fields,join(" ",
                           $self->_element_sql($field),
@@ -436,7 +437,7 @@ sub _update {
     }
    
     my $set_clause = join(" ",Database::Accessor::Driver::DBI::SQL::SET,
-                        join(",",@fields)
+                        join(", ",@fields)
                         );
                         
     $self->da_warn("_update"," Set clause='$set_clause'")
@@ -460,7 +461,7 @@ sub _insert {
       if $self->da_warning()>=5;
 
 
-    foreach my $key ( keys( %{$container} ) ) {
+    foreach my $key ( sort(keys( %{$container} )) ) {
         my $field = $self->get_element_by_name( $key);
         push(@fields, $self->_element_sql($field));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
@@ -469,20 +470,21 @@ sub _insert {
        
     }
    
-    my $fields_clause = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
-                        .join(",",@fields)
-                        .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
+    my $fields_clause = join(" ",Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
+                        join(", ",@fields),
+                        Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
    
     $self->da_warn("_insert"," Fields clause='$fields_clause'")
       if $self->da_warning()>=5;
     
                         
-    my $values_clause = Database::Accessor::Driver::DBI::SQL::VALUES
-                        .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
-                        .join(",",
+    my $values_clause =  Database::Accessor::Driver::DBI::SQL::VALUES
+                        .join(" ",
+                        Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
+                        join(", ",
                               map(Database::Accessor::Driver::DBI::SQL::PARAM,@fields)
-                             )
-                        .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
+                             ),
+                        Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
                           
    
     $self->da_warn("_insert"," Values clause='$values_clause'")
