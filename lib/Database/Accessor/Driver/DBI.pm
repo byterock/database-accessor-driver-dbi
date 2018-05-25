@@ -288,7 +288,6 @@ sub DB_Class {
 # DADNote I use one sub for each of the 4 crud functions
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
 
-
 sub _where_clause {
     my $self = shift;
     return ""
@@ -296,30 +295,73 @@ sub _where_clause {
     return
       $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
         $self->conditions );
-}
-
+}
 sub _predicate_clause {
     my $self = shift;
     my ( $clause_type, $conditions ) = @_;
-    my $clause           = " $clause_type ";
+    my $clause           = " $clause_type";
     my $predicate_clause = "";
 
-    foreach my $condtion ( @{$conditions} ) {
-        foreach my $predicate ( @{ $condtion->{predicates} } ) {
-            $predicate_clause .= join( " ",
-                $predicate->left->view . "." . $predicate->left->name,
-                $predicate->operator,
-                "'" . $predicate->right->value . "'",
-                $predicate->condition )
-
+    foreach my $condition ( @{$conditions} ) {
+        foreach my $predicate ( @{ $condition->{predicates} } ) {
+          $predicate_clause .= $self->_predicate_sql($predicate);
         }
     }
     $self->da_warn( "_predicate_clause",
         $clause_type . " clause='$predicate_clause'" )
       if $self->da_warning() >= 5;
-    return join( " ", $clause, $predicate_clause );
+    return join( " ",$clause, $predicate_clause );
 }
 
+sub _predicate_sql {
+    my $self = shift;
+    my ($predicate) = @_;
+    
+    my $clause =  "";
+       $clause .= " "
+              .$predicate->condition()
+              . " " 
+     if ($predicate->condition());
+
+    $clause .= Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+              ." "
+      if ( $predicate->open_parenthes() );
+      
+    if (Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS->{ $predicate->operator }){
+       $clause .= join(" ",$self->_element_sql($predicate->left),
+                $predicate->operator,
+                $self->_element_sql($predicate->right));
+      
+    }
+   $clause .= " "
+           .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
+      if ( $predicate->close_parenthes() );
+   $self->da_warn( "_predicate_sql",
+                   " clause='$clause'" )
+      if $self->da_warning() >= 6;
+    return $clause;
+}
+
+sub _element_sql {
+  my $self = shift;
+  my ($element,$use_alias) = shift;
+  if (ref($element) eq 'Database::Accessor::Param'){
+    $self->add_param($element);
+    return Database::Accessor::Driver::DBI::SQL::PARAM;
+  }
+  else {
+    my $sql = $element->view
+           ."."
+           .$element->name;
+    $sql .= join(" ",
+                 Database::Accessor::Driver::DBI::SQL::AS, 
+                 $element->alias())
+       if ($element->alias and $use_alias );
+    return $sql;
+       
+  }
+  
+}
 
 sub _delete {
     
@@ -345,19 +387,12 @@ sub _select {
 
     foreach my $field ( @{$self->elements()} ) {
         push(@fields,join(" ",
-                        $field->view
-                        ."."
-                        .$field->name,
-                        ($field->alias) 
-                          ? join(" ",
-                                 Database::Accessor::Driver::DBI::SQL::AS, 
-                                 $field->alias())
-                          :""));
+                        $self->_element_sql($field,1)));
        
     }
     my $select_clause    = join(" ",
                                Database::Accessor::Driver::DBI::SQL::SELECT,
-                               join(",",@fields));
+                               join(", ",@fields));
     
     $self->da_warn("_select","Select clause='$select_clause'")
       if $self->da_warning()>=5;
@@ -395,13 +430,9 @@ sub _update {
     foreach my $key ( keys( %{$container} ) ) {
         my $field = $self->get_element_by_name( $key);
         push(@fields,join(" ",
-                         $field->view
-                         .'.'
-                         .$field->name,'=',Database::Accessor::Driver::DBI::SQL::PARAM));
-        my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
-        $self->add_param($param);
-      #  push(@values,$param->value());
-       
+                          $self->_element_sql($field),
+                          '=',
+                          $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
     }
    
     my $set_clause = join(" ",Database::Accessor::Driver::DBI::SQL::SET,
@@ -431,9 +462,7 @@ sub _insert {
 
     foreach my $key ( keys( %{$container} ) ) {
         my $field = $self->get_element_by_name( $key);
-        push(@fields, $field->view
-                         .'.'
-                         .$field->name);
+        push(@fields, $self->_element_sql($field));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
       #  push(@values,$param->value());

@@ -81,6 +81,16 @@ use constant OPERATORS => {
    '<='=> 1,
 };
 
+use constant SIMPLE_OPERATORS => {
+   '=' => 1,
+   '!='=> 1,
+   '<>'=> 1,
+   '>' => 1,
+   '>='=> 1,
+   '<' => 1,
+   '<='=> 1,
+};
+
 use constant WHERE_CONDITIONS => {
     #Database::Accessor::Driver::DBI::SQL::IN          => 1,
     #Database::Accessor::Driver::DBI::SQL::NOT_IN      => 1,
