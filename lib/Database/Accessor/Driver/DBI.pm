@@ -50,7 +50,7 @@ sub execute {
      if ($action ne Database::Accessor::Constants::CREATE);
 
     $result->query($sql);
-
+    $result->params([map({$_->value} @{$self->params} )]);
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
      
