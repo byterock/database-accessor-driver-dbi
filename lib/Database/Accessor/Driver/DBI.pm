@@ -345,7 +345,7 @@ sub _predicate_clause {
 
 sub _element_sql {
   my $self = shift;
-  my ($element,$use_alias) = shift;
+  my ($element,$use_alias) = @_;
   if (ref($element) eq 'Database::Accessor::Param'){
     $self->add_param($element);
     return Database::Accessor::Driver::DBI::SQL::PARAM;
@@ -355,6 +355,7 @@ sub _element_sql {
            ."."
            .$element->name;
     $sql .= join(" ",
+                 "",
                  Database::Accessor::Driver::DBI::SQL::AS, 
                  $element->alias())
        if ($element->alias and $use_alias );
@@ -362,6 +363,17 @@ sub _element_sql {
        
   }
   
+}
+
+sub _view_sql {
+  my $self = shift;
+  my $view = $self->view()->name;
+  $view = join(" ",
+               $self->view()->name,
+               $self->view()->alias)
+    if $self->view()->alias();
+  return $view;
+              
 }
 
 sub _delete {
@@ -372,7 +384,7 @@ sub _delete {
 
     my $delete_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::DELETE
                                    ,Database::Accessor::Driver::DBI::SQL::FROM
-                                   ,$self->view()->name());
+                                   ,$self->_view_sql());
     
     $self->da_warn("_delete","Delete clause='$delete_clause'")
       if $self->da_warning()>=5;
@@ -400,11 +412,7 @@ sub _select {
 
     my $from_clause = join(" ",
                        Database::Accessor::Driver::DBI::SQL::FROM,
-                       ($self->view()->alias) 
-                         ?  join(" ",
-                                 Database::Accessor::Driver::DBI::SQL::AS, 
-                                 $self->view()->alias())
-                         : $self->view()->name 
+                       $self->_view_sql()
                        );
                         
     $self->da_warn("_select"," From clause='$from_clause'")
@@ -422,7 +430,7 @@ sub _update {
    # my @values           = ();
     
       
-    my $update_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::UPDATE, $self->view()->name());
+    my $update_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::UPDATE, $self->_view_sql());
     
     $self->da_warn("_update","Update clause='$update_clause'")
       if $self->da_warning()>=5;
@@ -455,7 +463,7 @@ sub _insert {
     
       
     my @fields_to_insert = $self->elements();
-    my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO, $self->view()->name());
+    my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO,$self->_view_sql());
     
     $self->da_warn("_insert","Insert clause='$insert_clause'")
       if $self->da_warning()>=5;

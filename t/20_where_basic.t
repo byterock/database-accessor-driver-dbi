@@ -58,7 +58,9 @@ my $container =  {first_name=>'Bill',
 my $da     = Database::Accessor->new($in_hash);
 ok($da->create( $utils->connect(),$container),"created something");
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","create SQL correct");
-cmp_deeply(
+
+
+warn(Dumper($da->result()->query()));cmp_deeply(
            $da->result()->params,
            [qw(Bill Bloggings)],
            "create params in correct order"
