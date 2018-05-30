@@ -36,4 +36,14 @@ $da->update( $utils->connect(),$container);
 ok($da->result()->query() eq "UPDATE people sys_users SET sys_users.first_name = ?, sys_users.last_name = ?","update SQL correct");
 $da->delete( $utils->connect());
 ok($da->result()->query() eq "DELETE FROM people sys_users","Delete SQL correct");
-                  
+                  
+
+$in_hash->{elements}->[0]->{view} = 'users';
+$da  = Database::Accessor->new($in_hash);
+$da->create( $utils->connect(),$container);
+ok($da->result()->query() eq "INSERT INTO people sys_users ( sys_users.first_name ) VALUES( ? )","create SQL correct");
+$da->retrieve( $utils->connect());
+ok($da->result()->query() eq "SELECT users.last_name, sys_users.first_name FROM people sys_users","retrieve SQL correct");
+$da->update( $utils->connect(),$container);
+ok($da->result()->query() eq "UPDATE people sys_users SET sys_users.first_name = ?","update SQL correct");
+
