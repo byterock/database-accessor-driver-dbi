@@ -438,6 +438,8 @@ sub _update {
 
     foreach my $key ( sort(keys( %{$container} )) ) {
         my $field = $self->get_element_by_name( $key);
+        next
+         if(!$field);
         push(@fields,join(" ",
                           $self->_element_sql($field),
                           '=',
@@ -471,6 +473,8 @@ sub _insert {
 
     foreach my $key ( sort(keys( %{$container} )) ) {
         my $field = $self->get_element_by_name( $key);
+        next
+         if(!$field);
         push(@fields, $self->_element_sql($field));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
