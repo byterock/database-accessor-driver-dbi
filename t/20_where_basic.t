@@ -34,8 +34,8 @@ my $utils = Test::Utils->new();
             },
             right           => { value => 'test1' },
             operator        => '=',
-            open_parenthes  => 1,
-            close_parenthes => 0,
+            open_parentheses  => 1,
+            close_parentheses => 0,
         },
         {
             condition => 'AND',
@@ -45,8 +45,8 @@ my $utils = Test::Utils->new();
             },
             right           => { value => 'test2' },
             operator        => '=',
-            open_parenthes  => 0,
-            close_parenthes => 1
+            open_parentheses  => 0,
+            close_parentheses => 1
         }
       ]
 
@@ -60,7 +60,7 @@ ok($da->create( $utils->connect(),$container),"created something");
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","create SQL correct");
 
 
-warn(Dumper($da->result()->query()));cmp_deeply(
+warn(Dumper($da->result()));cmp_deeply(
            $da->result()->params,
            [qw(Bill Bloggings)],
            "create params in correct order"

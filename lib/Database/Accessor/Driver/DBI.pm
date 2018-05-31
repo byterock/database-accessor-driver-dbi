@@ -326,7 +326,7 @@ sub _predicate_clause {
 
     $clause .= Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
               ." "
-      if ( $predicate->open_parenthes() );
+      if ( $predicate->open_parentheses() );
       
     if (Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS->{ $predicate->operator }){
        $clause .= join(" ",$self->_element_sql($predicate->left),
@@ -336,7 +336,7 @@ sub _predicate_clause {
     }
    $clause .= " "
            .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
-      if ( $predicate->close_parenthes() );
+      if ( $predicate->close_parentheses() );
    $self->da_warn( "_predicate_sql",
                    " clause='$clause'" )
       if $self->da_warning() >= 6;
