@@ -15,7 +15,7 @@ my $utils = Test::Utils->new();
     elements => [
         {
             name => 'first_name',
-            view => 'People'
+            view => 'people'
         },
         {
             name => 'last_name',
@@ -58,34 +58,11 @@ my $container =  {first_name=>'Bill',
 my $da     = Database::Accessor->new($in_hash);
 ok($da->create( $utils->connect(),$container),"created something");
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","create SQL correct");
-
-
-warn(Dumper($da->result()));cmp_deeply(
-           $da->result()->params,
-           [qw(Bill Bloggings)],
-           "create params in correct order"
-          );
 ok($da->retrieve( $utils->connect() ),"retrieved something");
 ok($da->result()->query() eq "SELECT people.first_name, people.last_name, people.user_id FROM people WHERE ( people.first_name = ? AND people.last_name = ? )","retrieve SQL correct");
-cmp_deeply(
-           $da->result()->params,
-           [qw(test1 test2)],
-           "retrieve params in correct order"
-          );
 ok($da->update( $utils->connect(),$container),"updated something");
 ok($da->result()->query() eq "UPDATE people SET people.first_name = ?, people.last_name = ? WHERE ( people.first_name = ? AND people.last_name = ? )","update SQL correct");
-cmp_deeply(
-           $da->result()->params,
-           [qw(Bill Bloggings test1 test2)],
-           "update params in correct order"
-          );
-
 ok($da->delete( $utils->connect() ),"deleted something");
 ok($da->result()->query() eq "DELETE FROM people WHERE ( people.first_name = ? AND people.last_name = ? )","delete SQL correct");
-cmp_deeply(
-           $da->result()->params,
-           [qw(test1 test2)],
-           "delete params in correct order"
-          );
 
                   

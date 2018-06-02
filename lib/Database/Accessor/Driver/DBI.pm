@@ -12,7 +12,11 @@ use Moose;
 with(qw( Database::Accessor::Roles::Driver));
 
 
-
+ has is_exe_array => (
+            is  => 'rw',
+            isa => 'Bool',
+            default     => 0,
+     );
 
 # DADNote you will get an empty result class that you will have to fill .
 # DADNote trap all errors and return via that class 
@@ -50,19 +54,38 @@ sub execute {
      if ($action ne Database::Accessor::Constants::CREATE);
 
     $result->query($sql);
-    $result->params([map({$_->value} @{$self->params} )]);
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
-     
-     return 1
+    
+    if ($self->is_exe_array()){
+      my $params = $self->params();
+      foreach my $tuple (@{$params}){
+         
+         my @tuple = map({$_->value} @{$tuple} );
+         $result->add_param(\@tuple);
+      }
+    }
+    else {
+      $result->params([map({$_->value} @{$self->params} )]);
+    }
+    
+    return 1
        if $self->da_compose_only();
        
     my $sth;
 
     eval {
+        
         $sth = $dbh->prepare($sql);
+        
+        
         foreach my $index (1..$self->param_count()){
-           $sth->bind_param( $index,$self->params->[$index-1]->value );
+          if ($self->is_exe_array()){
+            $sth->bind_param_array($index,$result->params()->[$index-1]);
+          }
+          else {
+           $sth->bind_param( $index,$self->params->[$index-1]->value ); 
+          }
         }
         
         if ($action eq Database::Accessor::Constants::RETRIEVE) {
@@ -71,11 +94,22 @@ sub execute {
            $result->set($results);
         }
         else {
-           my $rows_effected = $sth->execute();
+           my $rows_effected;
+           if ($self->is_exe_array()){
+             my @tuple_status;
+             $sth->execute_array( { ArrayTupleStatus => \@tuple_status } );
+             $rows_effected = scalar(@tuple_status);
+             $result->set(\@tuple_status);
+           }
+           else {
+             $rows_effected = $sth->execute();
+           }
            $result->effected($rows_effected);
-           $dbh->commit()
-            if ($dbh->{AutoCommit} == 0 and !$self->da_no_effect);
         }
+        
+        $dbh->commit()
+          if ($dbh->{AutoCommit} == 0 and !$self->da_no_effect);
+
     };
 
     if ($@) {
@@ -437,7 +471,7 @@ sub _update {
 
 
     foreach my $key ( sort(keys( %{$container} )) ) {
-        my $field = $self->get_element_by_name( $key);
+        my $field = $self->get_element_by_name($key);
         next
          if(!$field);
         push(@fields,join(" ",
@@ -461,8 +495,7 @@ sub _insert {
     my $self             = shift;
     my ($container)      = @_;
     my @fields           = ();
-   # my @values           = ();
-    
+    my @field_sql        = ();
       
     my @fields_to_insert = $self->elements();
     my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO,$self->_view_sql());
@@ -470,20 +503,43 @@ sub _insert {
     $self->da_warn("_insert","Insert clause='$insert_clause'")
       if $self->da_warning()>=5;
 
-
-    foreach my $key ( sort(keys( %{$container} )) ) {
+    if (ref($container) eq "ARRAY"){
+      $self->is_exe_array(1);
+      my $fields = $container->[0];
+            foreach my $key (sort(keys( %{$fields} )) ) {
         my $field = $self->get_element_by_name( $key);
         next
          if(!$field);
-        push(@fields, $self->_element_sql($field));
+        push(@fields,$field);
+
+        push(@field_sql, $self->_element_sql($field));
+              }
+      foreach my $tuple (@{$container}){
+         my @params = ();
+         foreach my $field (@fields){
+           my $param =  Database::Accessor::Param->new({value=> $tuple->{$field->name()}});
+           
+           push(@params,$param);
+         }
+         $self->add_param(\@params);
+       }
+       my $params = $self->params();
+      
+    }
+    else {
+      foreach my $key ( sort(keys( %{$container} )) ) {
+        my $field = $self->get_element_by_name( $key);
+        next
+         if(!$field);
+        push(@field_sql, $self->_element_sql($field));
         my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
         $self->add_param($param);
       #  push(@values,$param->value());
        
+      }
     }
-   
     my $fields_clause = join(" ",Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
-                        join(", ",@fields),
+                        join(", ",@field_sql),
                         Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
    
     $self->da_warn("_insert"," Fields clause='$fields_clause'")
@@ -494,7 +550,7 @@ sub _insert {
                         .join(" ",
                         Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
                         join(", ",
-                              map(Database::Accessor::Driver::DBI::SQL::PARAM,@fields)
+                              map(Database::Accessor::Driver::DBI::SQL::PARAM,@field_sql)
                              ),
                         Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
                           
