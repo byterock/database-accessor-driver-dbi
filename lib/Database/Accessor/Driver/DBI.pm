@@ -81,7 +81,9 @@ sub execute {
         
         foreach my $index (1..$self->param_count()){
           if ($self->is_exe_array()){
-            $sth->bind_param_array($index,$result->params()->[$index-1]);
+            my $tuple = $result->params()->[$index-1];
+            warn("$index ".Dumper($tuple));
+            $sth->bind_param_array($index,$tuple);
           }
           else {
            $sth->bind_param( $index,$self->params->[$index-1]->value ); 
@@ -97,7 +99,9 @@ sub execute {
            my $rows_effected;
            if ($self->is_exe_array()){
              my @tuple_status;
-             $sth->execute_array( { ArrayTupleStatus => \@tuple_status } );
+             
+             warn("here=".Dumper( $sth->{ParamArrays}));
+             $sth->execute_array( { ArrayTupleStatus => \@tuple_status });
              $rows_effected = scalar(@tuple_status);
              $result->set(\@tuple_status);
            }

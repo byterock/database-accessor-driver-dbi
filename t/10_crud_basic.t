@@ -47,3 +47,16 @@ unless($user->result()->is_error) {
 }else{
    fail("No Result set");
 }
+
+
+$container = [{username=>'Bill',address =>'ABC'},
+              {username=>'Jane',address =>'DEF'},
+              # {username=>'John',address =>'HIJ'},
+              # {username=>'Joe',address =>'KLm'},
+              ];
+
+
+$user->create( $utils->connect(),$container);
+ warn(Dumper($user));
+ok($user->retrieve($utils->connect()),"retrieve function");
+warn(Dumper($user));
