@@ -51,12 +51,10 @@ unless($user->result()->is_error) {
 
 $container = [{username=>'Bill',address =>'ABC'},
               {username=>'Jane',address =>'DEF'},
-              # {username=>'John',address =>'HIJ'},
-              # {username=>'Joe',address =>'KLm'},
+              {username=>'John',address =>'HIJ'},
+              {username=>'Joe',address =>'KLM'},
               ];
 
 
 $user->create( $utils->connect(),$container);
- warn(Dumper($user));
-ok($user->retrieve($utils->connect()),"retrieve function");
-warn(Dumper($user));
+#ok($user->retrieve($utils->connect()),"retrieve function");

@@ -82,7 +82,6 @@ sub execute {
         foreach my $index (1..$self->param_count()){
           if ($self->is_exe_array()){
             my $tuple = $result->params()->[$index-1];
-            warn("$index ".Dumper($tuple));
             $sth->bind_param_array($index,$tuple);
           }
           else {
@@ -100,7 +99,7 @@ sub execute {
            if ($self->is_exe_array()){
              my @tuple_status;
              
-             warn("here=".Dumper( $sth->{ParamArrays}));
+             
              $sth->execute_array( { ArrayTupleStatus => \@tuple_status });
              $rows_effected = scalar(@tuple_status);
              $result->set(\@tuple_status);
@@ -506,28 +505,27 @@ sub _insert {
     
     $self->da_warn("_insert","Insert clause='$insert_clause'")
       if $self->da_warning()>=5;
-
-    if (ref($container) eq "ARRAY"){
+    if (ref($container) eq "ARRAY"){
       $self->is_exe_array(1);
       my $fields = $container->[0];
-            foreach my $key (sort(keys( %{$fields} )) ) {
+      foreach my $key (sort(keys( %{$fields} )) ) {
         my $field = $self->get_element_by_name( $key);
         next
          if(!$field);
         push(@fields,$field);
-
         push(@field_sql, $self->_element_sql($field));
-              }
+        $self->add_param([]);
+      }
       foreach my $tuple (@{$container}){
-         my @params = ();
+         my $index = 0;
          foreach my $field (@fields){
            my $param =  Database::Accessor::Param->new({value=> $tuple->{$field->name()}});
-           
-           push(@params,$param);
+           push(@{$self->params->[$index]},$param);
+           $index++;
          }
-         $self->add_param(\@params);
+         
        }
-       my $params = $self->params();
+       
       
     }
     else {
