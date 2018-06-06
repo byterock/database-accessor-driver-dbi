@@ -59,10 +59,15 @@ sub execute {
     
     if ($self->is_exe_array()){
       my $params = $self->params();
+
       foreach my $tuple (@{$params}){
-         
-         my @tuple = map({$_->value} @{$tuple} );
-         $result->add_param(\@tuple);
+        if (ref($tuple) eq "ARRAY"){
+           my @tuple = map({$_->value} @{$tuple} );
+           $result->add_param(\@tuple);
+         }
+         else {
+           $result->add_param($tuple->value);
+         }
       }
     }
     else {
@@ -77,8 +82,6 @@ sub execute {
     eval {
         
         $sth = $dbh->prepare($sql);
-        
-        
         foreach my $index (1..$self->param_count()){
           if ($self->is_exe_array()){
             my $tuple = $result->params()->[$index-1];
@@ -459,11 +462,67 @@ sub _select {
 
 }
 
+sub _insert_update_container {
+  my $self = shift;
+  my ($action,$container) = @_;
+  
+  my @field_sql        = ();
+  if (ref($container) eq "ARRAY"){
+      my @fields           = ();
+      $self->is_exe_array(1);
+      my $fields = $container->[0];
+      foreach my $key (sort(keys( %{$fields} )) ) {
+        my $field = $self->get_element_by_name( $key);
+        next
+         if(!$field);
+        push(@fields,$field);
+        if ($action eq Database::Accessor::Constants::UPDATE){
+           push(@field_sql,join(" ",
+                          $self->_element_sql($field),
+                          '=',
+                          Database::Accessor::Driver::DBI::SQL::PARAM));
+        }
+        else {
+          push(@field_sql, $self->_element_sql($field));
+        }
+        $self->add_param([]);
+      }
+      foreach my $tuple (@{$container}){
+         my $index = 0;
+         foreach my $field (@fields){
+           my $param =  Database::Accessor::Param->new({value=> $tuple->{$field->name()}});
+           push(@{$self->params->[$index]},$param);
+           $index++;
+         }
+         
+       }
+    }
+    else {
+      foreach my $key ( sort(keys( %{$container} )) ) {
+        my $field = $self->get_element_by_name( $key);
+        next
+         if(!$field);
+         if ($action eq Database::Accessor::Constants::UPDATE){
+           push(@field_sql,join(" ",
+                          $self->_element_sql($field),
+                          '=',
+                          $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
+        }
+        else {
+           push(@field_sql, $self->_element_sql($field));
+           my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
+           $self->add_param($param);
+        }
+      }
+    }
+    return (@field_sql);
+}
+
 sub _update {
     
     my $self             = shift;
     my ($container)      = @_;
-    my @fields           = ();
+    #my @fields           = ();
    # my @values           = ();
     
       
@@ -472,19 +531,20 @@ sub _update {
     $self->da_warn("_update","Update clause='$update_clause'")
       if $self->da_warning()>=5;
 
-
-    foreach my $key ( sort(keys( %{$container} )) ) {
-        my $field = $self->get_element_by_name($key);
-        next
-         if(!$field);
-        push(@fields,join(" ",
-                          $self->_element_sql($field),
-                          '=',
-                          $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
-    }
+    my (@field_sql) = $self->_insert_update_container(Database::Accessor::Constants::UPDATE,$container);
+    
+    # foreach my $key ( sort(keys( %{$container} )) ) {
+        # my $field = $self->get_element_by_name($key);
+        # next
+         # if(!$field);
+        # push(@fields,join(" ",
+                          # $self->_element_sql($field),
+                          # '=',
+                          # $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
+    # }
    
     my $set_clause = join(" ",Database::Accessor::Driver::DBI::SQL::SET,
-                        join(", ",@fields)
+                        join(", ",@field_sql)
                         );
                         
     $self->da_warn("_update"," Set clause='$set_clause'")
@@ -497,49 +557,51 @@ sub _insert {
     
     my $self             = shift;
     my ($container)      = @_;
-    my @fields           = ();
-    my @field_sql        = ();
+    #my @fields           = ();
+    #my @ field_sql        = ();
       
-    my @fields_to_insert = $self->elements();
     my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO,$self->_view_sql());
     
     $self->da_warn("_insert","Insert clause='$insert_clause'")
       if $self->da_warning()>=5;
-    if (ref($container) eq "ARRAY"){
-      $self->is_exe_array(1);
-      my $fields = $container->[0];
-      foreach my $key (sort(keys( %{$fields} )) ) {
-        my $field = $self->get_element_by_name( $key);
-        next
-         if(!$field);
-        push(@fields,$field);
-        push(@field_sql, $self->_element_sql($field));
-        $self->add_param([]);
-      }
-      foreach my $tuple (@{$container}){
-         my $index = 0;
-         foreach my $field (@fields){
-           my $param =  Database::Accessor::Param->new({value=> $tuple->{$field->name()}});
-           push(@{$self->params->[$index]},$param);
-           $index++;
-         }
+    
+    my (@field_sql) = $self->_insert_update_container(Database::Accessor::Constants::CREATE,$container);
+          
+    # if (ref($container) eq "ARRAY"){
+      # $self->is_exe_array(1);
+      # my $fields = $container->[0];
+      # foreach my $key (sort(keys( %{$fields} )) ) {
+        # my $field = $self->get_element_by_name( $key);
+        # next
+         # if(!$field);
+        # push(@fields,$field);
+        # push(@field_sql, $self->_element_sql($field));
+        # $self->add_param([]);
+      # }
+      # foreach my $tuple (@{$container}){
+         # my $index = 0;
+         # foreach my $field (@fields){
+           # my $param =  Database::Accessor::Param->new({value=> $tuple->{$field->name()}});
+           # push(@{$self->params->[$index]},$param);
+           # $index++;
+         # }
          
-       }
+       # }
        
       
-    }
-    else {
-      foreach my $key ( sort(keys( %{$container} )) ) {
-        my $field = $self->get_element_by_name( $key);
-        next
-         if(!$field);
-        push(@field_sql, $self->_element_sql($field));
-        my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
-        $self->add_param($param);
-      #  push(@values,$param->value());
+    # }
+    # else {
+      # foreach my $key ( sort(keys( %{$container} )) ) {
+        # my $field = $self->get_element_by_name( $key);
+        # next
+         # if(!$field);
+        # push(@field_sql, $self->_element_sql($field));
+        # my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
+        # $self->add_param($param);
+      # #  push(@values,$param->value());
        
-      }
-    }
+      # }
+    # }
     my $fields_clause = join(" ",Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
                         join(", ",@field_sql),
                         Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);

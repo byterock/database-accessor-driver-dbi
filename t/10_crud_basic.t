@@ -48,13 +48,21 @@ unless($user->result()->is_error) {
    fail("No Result set");
 }
 
+use Test::User;
 
-$container = [{username=>'Bill',address =>'ABC'},
+$container = [Test::User->new({username=>'Bill',address =>'ABC'}),
               {username=>'Jane',address =>'DEF'},
-              {username=>'John',address =>'HIJ'},
+              Test::User->new({username=>'John',address =>'HIJ'}),
               {username=>'Joe',address =>'KLM'},
               ];
+ok($user->create( $utils->connect(),$container),"Execute Array add 4");
+unless($user->result()->is_error) {
+  ok(scalar(@{$user->result()->set}) == 4,"Four records added");
+}else{
+   fail("Execute Array failed");
+}
 
+ok($user->update( $utils->connect(),$container),"update with present container");
 
-$user->create( $utils->connect(),$container);
-#ok($user->retrieve($utils->connect()),"retrieve function");
+# warn(Dumper($user->result()));
+
