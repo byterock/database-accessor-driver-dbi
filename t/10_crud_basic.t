@@ -64,5 +64,28 @@ unless($user->result()->is_error) {
 
 ok($user->update( $utils->connect(),$container),"update with present container");
 
-# warn(Dumper($user->result()));
+$user->reset_conditions();
+$container = [{address =>'MNO'},
+              {address =>'PQR'},
+              {address =>'STU'},
+              ];
+$user->add_condition({left  =>{ name  => 'username',
+                                view  => 'user'},
+                      right =>{ value => ['Bill','Jane','Joe']}
+                    });
 
+ok($user->update( $utils->connect(),$container),"update array on where param");
+
+$user->reset_conditions();
+$container = {address =>'VWX'};
+$user->add_condition({left  =>{ name  => 'username',
+                                view  => 'user'},
+                      right =>{ value => ['Bill','Jane','Joe']}
+                    });
+ok($user->update( $utils->connect(),$container),"update hash container with an array");
+
+# warn(Dumper($user->result()));
+# my $dbh = $utils->connect();
+# my $sth = $dbh->prepare("SELECT * FROM user");
+# $sth->execute;
+# $sth->dump_results if $sth->{NUM_OF_FIELDS};

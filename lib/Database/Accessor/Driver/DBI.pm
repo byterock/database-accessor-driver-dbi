@@ -387,6 +387,9 @@ sub _element_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
   if (ref($element) eq 'Database::Accessor::Param'){
+    if (ref($element->value) eq "ARRAY"){
+      $self->is_exe_array(1);
+    }
     $self->add_param($element);
     return Database::Accessor::Driver::DBI::SQL::PARAM;
   }
