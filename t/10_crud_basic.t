@@ -84,7 +84,25 @@ $user->add_condition({left  =>{ name  => 'username',
                     });
 ok($user->update( $utils->connect(),$container),"update hash container with an array");
 
-# warn(Dumper($user->result()));
+use Database::Accessor;
+my $other_user = Database::Accessor->new({view=>{name=>'user'},
+                                          elements=>[{name=>'username'}],
+                                          conditions=>{left  =>{ name  => 'username',
+                                view  => 'user'},
+                      right =>{ value => 'Bill'}}});
+                    
+$other_user->retrieve($utils->connect());
+
+$user->reset_conditions();
+$user->add_condition({left  =>{ name  => 'username',
+                                view  => 'user'},
+                      right =>{ value => $other_user}
+                    });
+                    
+ok($user->retrieve($utils->connect()),"retrieve function");
+
+ # warn(Dumper($other_user->result()));
+  warn(Dumper($user));
 # my $dbh = $utils->connect();
 # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;

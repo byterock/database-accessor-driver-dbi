@@ -12,11 +12,17 @@ use Moose;
 with(qw( Database::Accessor::Roles::Driver));
 
 
+ has dbh => (
+            is  => 'rw',
+            isa => 'DBI::db',
+     );
  has is_exe_array => (
             is  => 'rw',
             isa => 'Bool',
             default     => 0,
      );
+
+
 
 # DADNote you will get an empty result class that you will have to fill .
 # DADNote trap all errors and return via that class 
@@ -35,7 +41,8 @@ sub execute {
 
     local $dbh->{RaiseError} = 1
       unless($self->da_raise_error_off);
-
+    $self->dbh($dbh);
+    
     my $sql;
     if ( $action eq Database::Accessor::Constants::CREATE ) {
         $sql = $self->_insert($container);
@@ -387,7 +394,21 @@ sub _element_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
   if (ref($element) eq 'Database::Accessor::Param'){
-    if (ref($element->value) eq "ARRAY"){
+    if (ref($element->value) eq "Database::Accessor"){
+      my $da = $element->value;
+      $da->da_compose_only();
+      $da->retrieve($self->dbh());
+      my $sql = join(" ",
+                     Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
+                      $da->result->query(),
+                     Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS  );
+                      
+      foreach my $sub_param (@{$da->result->params()}){
+        warn("JSP $sub_param");
+        $self->add_param(Database::Accessor::Param->new({value=>$sub_param}));
+      }
+      return $sql;    }
+    elsif (ref($element->value) eq "ARRAY"){
       $self->is_exe_array(1);
     }
     $self->add_param($element);
