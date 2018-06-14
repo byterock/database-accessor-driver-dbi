@@ -396,14 +396,12 @@ sub _element_sql {
     if (ref($element) eq "Database::Accessor::Function"){
       my $left_sql = $self->_element_sql($element->left());
       my @right_sql;
-      my @params;
       
-      if (ref($element->right()) eq "Array"){
-        @params= @{$element->right()};
+      if (ref($element->right()) ne "Array"){
+         my $param = $element->right();
+         $element->right([$param]);
       }
-      else {
-        push(@params,$element->right());      }
-      foreach my $param (@params){
+      foreach my $param (@{$element->right()}){
         push(@right_sql,$self->_element_sql($param));
       }              my $right_sql = join(',',@right_sql);
       return $element->function
