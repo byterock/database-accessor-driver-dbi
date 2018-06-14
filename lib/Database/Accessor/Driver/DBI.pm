@@ -108,8 +108,7 @@ sub execute {
            my $rows_effected;
            if ($self->is_exe_array()){
              my @tuple_status;
-             
-             
+ 
              $sth->execute_array( { ArrayTupleStatus => \@tuple_status });
              $rows_effected = scalar(@tuple_status);
              $result->set(\@tuple_status);
@@ -393,7 +392,27 @@ sub _predicate_clause {
 sub _element_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
-  if (ref($element) eq 'Database::Accessor::Param'){
+  
+    if (ref($element) eq "Database::Accessor::Function"){
+      my $left_sql = $self->_element_sql($element->left());
+      my @right_sql;
+      my @params;
+      
+      if (ref($element->right()) eq "Array"){
+        @params= @{$element->right()};
+      }
+      else {
+        push(@params,$element->right());      }
+      foreach my $param (@params){
+        push(@right_sql,$self->_element_sql($param));
+      }              my $right_sql = join(',',@right_sql);
+      return $element->function
+             .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+             .$left_sql
+             .','
+             .$right_sql
+             .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;                            }
+  elsif (ref($element) eq "Database::Accessor::Param"){
     if (ref($element->value) eq "Database::Accessor"){
       my $da = $element->value;
       $da->da_compose_only();
@@ -404,7 +423,6 @@ sub _element_sql {
                      Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS  );
                       
       foreach my $sub_param (@{$da->result->params()}){
-        warn("JSP $sub_param");
         $self->add_param(Database::Accessor::Param->new({value=>$sub_param}));
       }
       return $sql;    }

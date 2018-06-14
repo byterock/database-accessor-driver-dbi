@@ -96,6 +96,8 @@ $expected  = [['Bill','Bloggings'],
 
 $da->create( $utils->connect(),$container);
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","Array create SQL correct");
+
+warn("s=".Dumper($da->result()));
 for (my $index = 0; $index < $da->result()->param_count; $index++){
   
     cmp_deeply(

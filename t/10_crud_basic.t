@@ -91,8 +91,7 @@ my $other_user = Database::Accessor->new({view=>{name=>'user'},
                                 view  => 'user'},
                       right =>{ value => 'Bill'}}});
                     
-$other_user->retrieve($utils->connect());
-
+$user->da_compose_only(1);
 $user->reset_conditions();
 $user->add_condition({left  =>{ name  => 'username',
                                 view  => 'user'},
@@ -102,8 +101,10 @@ $user->add_condition({left  =>{ name  => 'username',
 ok($user->retrieve($utils->connect()),"retrieve function");
 
  # warn(Dumper($other_user->result()));
-  warn(Dumper($user));
+#  warn(Dumper($user));
 # my $dbh = $utils->connect();
 # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;
 # $sth->dump_results if $sth->{NUM_OF_FIELDS};
+
+
