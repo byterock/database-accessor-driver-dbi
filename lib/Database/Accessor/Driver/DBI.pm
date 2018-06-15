@@ -392,25 +392,49 @@ sub _predicate_clause {
 sub _element_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
-  
-    if (ref($element) eq "Database::Accessor::Function"){
+  if (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql = $self->_element_sql($element->left());
       my @right_sql;
-      
+
       if (ref($element->right()) ne "Array"){
          my $param = $element->right();
-         $element->right([$param]);
+         $element->right([$param])
+         if ($param);
       }
       foreach my $param (@{$element->right()}){
         push(@right_sql,$self->_element_sql($param));
-      }              my $right_sql = join(',',@right_sql);
+      }        
+      my $right_sql = join(',',@right_sql);
+      return  Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+             .join(" "
+             ,$left_sql
+             ,$element->expression
+             ,$right_sql)
+             .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
+    }
+  elsif (ref($element) eq "Database::Accessor::Function"){
+      my $left_sql = $self->_element_sql($element->left());
+      my @right_sql;
+      
+      my $comma = "";      if ($element->right()){
+        $comma = ",";
+        if (ref($element->right()) ne "Array"){
+           my $param = $element->right();
+           $element->right([$param]);
+        }
+        foreach my $param (@{$element->right()}){
+          push(@right_sql,$self->_element_sql($param));
+        }        
+      }      my $right_sql = join(',',@right_sql);
       return $element->function
              .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
              .$left_sql
-             .','
+             .$comma
              .$right_sql
              .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;                            }
   elsif (ref($element) eq "Database::Accessor::Param"){
+    
+    
     if (ref($element->value) eq "Database::Accessor"){
       my $da = $element->value;
       $da->da_compose_only();
@@ -477,16 +501,13 @@ sub _select {
     my $self             = shift;
     my ($container)      = @_;
     my @fields           = ();
-
     foreach my $field ( @{$self->elements()} ) {
         push(@fields,join(" ",
                         $self->_element_sql($field,1)));
-       
-    }
+     }
     my $select_clause    = join(" ",
                                Database::Accessor::Driver::DBI::SQL::SELECT,
                                join(", ",@fields));
-    
     $self->da_warn("_select","Select clause='$select_clause'")
       if $self->da_warning()>=5;
 

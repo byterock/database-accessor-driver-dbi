@@ -151,7 +151,67 @@ cmp_deeply(
            [3,4,'Bill'],
            "Function withing a function params correct"
           );
-
+
+
+$in_hash->{elements}->[1] = { expression => '+',
+                                 left  => { name => 'salary' },
+                                 right => { param =>10} };
+
+
+
+
+
+my $da = Database::Accessor->new($in_hash);
+$da->retrieve( $utils->connect() );
+ok(
+    $da->result()->query() eq
+      "SELECT user.username, (user.salary + ?), user.address FROM user WHERE user.username = ?",
+      "Expression with 1 param binds SQL correct"
+);
+cmp_deeply(
+           $da->result()->params,
+           [10,'Bill'],
+           "Expression params correct"
+          );
+$in_hash->{elements}->[1] = { expression => '+',
+                                 left  => { name => 'salary' },
+                                 right => { expression => '*',
+                                                 left  => { name => 'bonus' },
+                                                 right => { param=>.05 }} };
+
+my $da = Database::Accessor->new($in_hash);
+$da->retrieve( $utils->connect() );
+ok(
+    $da->result()->query() eq
+      "SELECT user.username, (user.salary + (user.bonus * ?)), user.address FROM user WHERE user.username = ?",
+      "Expression within an expression SQL correct"
+);
+cmp_deeply(
+           $da->result()->params,
+           [.05,'Bill'],
+           "Expression within an expression params correct"
+          );
+
+$in_hash->{elements}->[1] = { function => 'abs',
+                                 left  => { expression => '*',
+                                                 left  => { name => 'bonus' },
+                                                 right => { param=>-.05 }} };
+
+
+
+my $da = Database::Accessor->new($in_hash);
+$da->retrieve( $utils->connect() );
+ok(
+    $da->result()->query() eq
+      "SELECT user.username, abs((user.bonus * ?)), user.address FROM user WHERE user.username = ?",
+      "Expression within an expression SQL correct"
+);
+cmp_deeply(
+           $da->result()->params,
+           [-.05,'Bill'],
+           "Expression within an expression params correct"
+          );
+
 warn( Dumper( $da->result() ) );
 
 
