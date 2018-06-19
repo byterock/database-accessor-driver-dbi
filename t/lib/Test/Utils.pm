@@ -4,8 +4,9 @@ package Test::Utils;
 use DBI;
 use Data::Dumper;
 use Cwd;
-
-use Moose;
+use strict;
+use Test::More;
+use Test::Deep qw(cmp_deeply); use Moose;
 sub db {
   my $self = shift;
   my $dir = getcwd;
@@ -34,7 +35,22 @@ sub connect {
     $dbh->do($sql);
   }
   
-     # my $sth = $dbh->prepare("SELECT * FROM user");
+
+
+sub sql_param_ok {
+    my $self = shift;
+    my ( $dbh, $in_hash, $opts ) = @_;
+    $in_hash->{ $opts->{key} }->[ $opts->{index} ] = $opts->{ $opts->{key} };
+    my $da = Database::Accessor->new($in_hash);
+    $da->retrieve($dbh);
+    warn(Dumper($da->result()->query()));
+    ok(
+        $da->result()->query() eq $opts->{sql},
+        $opts->{caption} . " SQL correct"
+    );
+    cmp_deeply( $da->result()->params, $opts->{params},
+        $opts->{caption} . " params correct" );
+}     # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;
 # $sth->dump_results if $sth->{NUM_OF_FIELDS};
  # $dbh->disconnect;

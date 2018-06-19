@@ -101,6 +101,15 @@ my $in_hash =  {
     };
 $da = Database::Accessor->new($in_hash);
 
+my $tests = [{
+    index=>1,
+    element => { function => 'substr',
+                    left  => { name => 'username' },
+                              right => [{ param =>3},
+                                        { param =>5}] },
+    caption => "Function with 2 params ",    sql     => "SELECT user.username, left(user.username,?), user.address FROM user WHERE user.username = ?",
+    params  => [3,5,'Bill']
+}];
 $da->retrieve( $utils->connect() );
 ok(
     $da->result()->query() eq
@@ -109,7 +118,7 @@ ok(
 );
 cmp_deeply(
            $da->result()->params,
-           [11,'Bill'],
+           [3,5,'Bill'],
            "Function params correct"
           );
 
