@@ -57,9 +57,10 @@ sub execute {
         $sql = $self->_select();
     }
     
-    $sql .= $self->_where_clause()
-     if ($action ne Database::Accessor::Constants::CREATE);
-
+    $sql .= $self->_join_clause();
+    $sql .= $self->_where_clause();
+    
+    
     $result->query($sql);
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
@@ -339,31 +340,59 @@ sub _where_clause {
     my $self = shift;
     return ""
       unless ( $self->condition_count );
-    return
-      $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
-        $self->conditions );
+    return " ".join(" ",
+                Database::Accessor::Driver::DBI::SQL::WHERE,
+                $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
+                $self->conditions ));
+}
+sub _join_clause {
+    my $self = shift;
+    return ""
+      unless ( $self->link_count );
+  
+      my @join_clauses = ();
+
+    foreach my $join (@{$self->links()}){
+       my $clause = join(" "
+                         ,$join->type,
+                         ,Database::Accessor::Driver::DBI::SQL::JOIN
+                         ,$self->_table_sql($join->to)
+                         ,Database::Accessor::Driver::DBI::SQL::ON
+                         , $self->_predicate_clause( 
+                             Database::Accessor::Driver::DBI::SQL::JOIN,
+                             $join->predicates() )
+                          );
+                         
+       push(@join_clauses,$clause );    }
+
+    return " "
+           .join(" "
+                ,@join_clauses);               
 }
 sub _predicate_clause {
     my $self = shift;
     my ( $clause_type, $conditions ) = @_;
-    my $clause           = " $clause_type";
     my $predicate_clause = "";
-
     foreach my $condition ( @{$conditions} ) {
-        foreach my $predicate ( @{ $condition->{predicates} } ) {
+       if (ref($condition) eq 'Database::Accessor::Condition'){        foreach my $predicate ( @{ $condition->predicates } ) {
           $predicate_clause .= $self->_predicate_sql($predicate);
         }
+      }
+      else {
+        $predicate_clause .= $self->_predicate_sql($condition);
+               }
     }
     $self->da_warn( "_predicate_clause",
         $clause_type . " clause='$predicate_clause'" )
       if $self->da_warning() >= 5;
-    return join( " ",$clause, $predicate_clause );
+    return $predicate_clause;
 }
 
 sub _predicate_sql {
     my $self = shift;
     my ($predicate) = @_;
-    
+
+
     my $clause =  "";
        $clause .= " "
               .$predicate->condition()
@@ -375,10 +404,13 @@ sub _predicate_clause {
       if ( $predicate->open_parentheses() );
       
     if (Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS->{ $predicate->operator }){
+      
+      
        $clause .= join(" ",$self->_element_sql($predicate->left),
                 $predicate->operator,
                 $self->_element_sql($predicate->right));
-      
+
+warn("JSP here $clause");      
     }
    $clause .= " "
            .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
@@ -469,14 +501,17 @@ sub _element_sql {
   
 }
 
-sub _view_sql {
+sub _table_sql {
   my $self = shift;
-  my $view = $self->view()->name;
-  $view = join(" ",
-               $self->view()->name,
-               $self->view()->alias)
-    if $self->view()->alias();
-  return $view;
+  my ($view) = @_;
+  
+  my $sql = $view->name;
+  
+  $sql = join(" ",
+               $view->name,
+               $view->alias)
+    if $view->alias();
+  return $sql;
               
 }
 
@@ -488,7 +523,7 @@ sub _delete {
 
     my $delete_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::DELETE
                                    ,Database::Accessor::Driver::DBI::SQL::FROM
-                                   ,$self->_view_sql());
+                                   ,$self->_view_sql($self->view));
     
     $self->da_warn("_delete","Delete clause='$delete_clause'")
       if $self->da_warning()>=5;
@@ -513,7 +548,7 @@ sub _select {
 
     my $from_clause = join(" ",
                        Database::Accessor::Driver::DBI::SQL::FROM,
-                       $self->_view_sql()
+                       $self->_table_sql($self->view)
                        );
                         
     $self->da_warn("_select"," From clause='$from_clause'")
@@ -587,7 +622,7 @@ sub _update {
    # my @values           = ();
     
       
-    my $update_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::UPDATE, $self->_view_sql());
+    my $update_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::UPDATE, $self->_table_sql($self->view));
     
     $self->da_warn("_update","Update clause='$update_clause'")
       if $self->da_warning()>=5;
@@ -621,7 +656,7 @@ sub _insert {
     #my @fields           = ();
     #my @ field_sql        = ();
       
-    my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO,$self->_view_sql());
+    my $insert_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::INSERT,Database::Accessor::Driver::DBI::SQL::INTO,$self->_table_sql($self->view));
     
     $self->da_warn("_insert","Insert clause='$insert_clause'")
       if $self->da_warning()>=5;
