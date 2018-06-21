@@ -59,6 +59,8 @@ sub execute {
     
     $sql .= $self->_join_clause();
     $sql .= $self->_where_clause();
+    $sql .= $self->_group_by_clause();
+    
     
     
     $result->query($sql);
@@ -336,6 +338,22 @@ sub DB_Class {
 # DADNote I use one sub for each of the 4 crud functions
 # DADNote I will allways need a container on an Insert otherwise how do I know what to insert So lets put that in the DA
 
+sub _group_by_clause {
+    my $self = shift;
+    return ""
+      unless ( $self->gather );
+    my $having = $self->gather;
+    return " ".join(" "
+                ,Database::Accessor::Driver::DBI::SQL::GROUP_BY
+                ,$self->_elements_sql($having->elements())
+                ,$having->condition_count >=1 
+                  ? join(" "
+                        ,Database::Accessor::Driver::DBI::SQL::HAVING
+                        ,$self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::GROUP_BY,
+                                                  $having->conditions ) )
+                  : "");
+}
+
 sub _where_clause {
     my $self = shift;
     return ""
@@ -424,6 +442,7 @@ sub _predicate_clause {
 sub _element_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
+  warn(Dumper($element));
   if (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql = $self->_element_sql($element->left());
       my @right_sql;
@@ -531,18 +550,25 @@ sub _delete {
 
 }
 
+sub _elements_sql {
+  
+  my $self = shift;
+  my ($elements) = @_;
+  my @fields = ();   
+  foreach my $field ( @{$elements} ) {
+     push(@fields,$self->_element_sql($field,1));
+  }
+  my $sql = join(", ",@fields);
+  return $sql;
+}
+
 sub _select {
     
     my $self             = shift;
     my ($container)      = @_;
-    my @fields           = ();
-    foreach my $field ( @{$self->elements()} ) {
-        push(@fields,join(" ",
-                        $self->_element_sql($field,1)));
-     }
-    my $select_clause    = join(" ",
-                               Database::Accessor::Driver::DBI::SQL::SELECT,
-                               join(", ",@fields));
+    my $select_clause    = join(" "
+                               ,Database::Accessor::Driver::DBI::SQL::SELECT
+                               ,$self->_elements_sql($self->elements()));
     $self->da_warn("_select","Select clause='$select_clause'")
       if $self->da_warning()>=5;
 
