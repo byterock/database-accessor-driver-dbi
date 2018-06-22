@@ -22,8 +22,6 @@ with(qw( Database::Accessor::Roles::Driver));
             default     => 0,
      );
 
-
-
 # DADNote you will get an empty result class that you will have to fill .
 # DADNote trap all errors and return via that class 
 
@@ -63,7 +61,8 @@ sub execute {
     $sql .= $self->_order_by_clause();
     
     
-    $result->query($sql);
+
+    $result->query($sql);
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
     
@@ -99,7 +98,8 @@ sub execute {
           }
           else {
            $sth->bind_param( $index,$self->params->[$index-1]->value ); 
-          }
+          }
+
         }
         
         if ($action eq Database::Accessor::Constants::RETRIEVE) {
@@ -155,7 +155,8 @@ sub _order_by_clause {
         Database::Accessor::Driver::DBI::SQL::ORDER_BY,
         $self->_elements_sql( $self->sorts() ) );
 }
-sub _group_by_clause {
+
+sub _group_by_clause {
     my $self = shift;
     return ""
       unless ( $self->gather );
@@ -179,15 +180,19 @@ sub _where_clause {
                 Database::Accessor::Driver::DBI::SQL::WHERE,
                 $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
                 $self->conditions ));
-}
-sub _join_clause {
+}
+
+
+sub _join_clause {
     my $self = shift;
     return ""
       unless ( $self->link_count );
   
-      my @join_clauses = ();
+  
+    my @join_clauses = ();
 
-    foreach my $join (@{$self->links()}){
+
+    foreach my $join (@{$self->links()}){
        my $clause = join(" "
                          ,$join->type,
                          ,Database::Accessor::Driver::DBI::SQL::JOIN
@@ -198,24 +203,29 @@ sub _where_clause {
                              $join->predicates() )
                           );
                          
-       push(@join_clauses,$clause );    }
+       push(@join_clauses,$clause );
+    }
 
-    return " "
+
+    return " "
            .join(" "
                 ,@join_clauses);               
-}
+}
+
 sub _predicate_clause {
     my $self = shift;
     my ( $clause_type, $conditions ) = @_;
     my $predicate_clause = "";
     foreach my $condition ( @{$conditions} ) {
-       if (ref($condition) eq 'Database::Accessor::Condition'){        foreach my $predicate ( @{ $condition->predicates } ) {
+       if (ref($condition) eq 'Database::Accessor::Condition'){
+        foreach my $predicate ( @{ $condition->predicates } ) {
           $predicate_clause .= $self->_predicate_sql($predicate);
         }
       }
       else {
         $predicate_clause .= $self->_predicate_sql($condition);
-               }
+        
+       }
     }
     $self->da_warn( "_predicate_clause",
         $clause_type . " clause='$predicate_clause'" )
@@ -223,11 +233,13 @@ sub _predicate_clause {
     return $predicate_clause;
 }
 
-sub _predicate_sql {
+
+sub _predicate_sql {
     my $self = shift;
     my ($predicate) = @_;
 
-
+
+
     my $clause =  "";
        $clause .= " "
               .$predicate->condition()
@@ -240,12 +252,14 @@ sub _predicate_clause {
       
     if (Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS->{ $predicate->operator }){
       
-      
+      
+
        $clause .= join(" ",$self->_element_sql($predicate->left),
                 $predicate->operator,
                 $self->_element_sql($predicate->right));
 
-     }
+     }
+
    $clause .= " "
            .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
       if ( $predicate->close_parentheses() );
@@ -278,12 +292,14 @@ sub _element_sql {
              ,$element->expression
              ,$right_sql)
              .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
-    }
+  
+  }
   elsif (ref($element) eq "Database::Accessor::Function"){
       my $left_sql = $self->_element_sql($element->left());
       my @right_sql;
       
-      my $comma = "";      if ($element->right()){
+      my $comma = "";
+      if ($element->right()){
         $comma = ",";
         if (ref($element->right()) ne "Array"){
            my $param = $element->right();
@@ -292,16 +308,20 @@ sub _element_sql {
         foreach my $param (@{$element->right()}){
           push(@right_sql,$self->_element_sql($param));
         }        
-      }      my $right_sql = join(',',@right_sql);
+      }
+      my $right_sql = join(',',@right_sql);
       return $element->function
              .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
              .$left_sql
              .$comma
              .$right_sql
-             .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;                            }
+             .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
+                          
+  }
   elsif (ref($element) eq "Database::Accessor::Param"){
     
-    
+    
+
     if (ref($element->value) eq "Database::Accessor"){
       my $da = $element->value;
       $da->da_compose_only();
@@ -314,7 +334,8 @@ sub _element_sql {
       foreach my $sub_param (@{$da->result->params()}){
         $self->add_param(Database::Accessor::Param->new({value=>$sub_param}));
       }
-      return $sql;    }
+      return $sql;
+    }
     elsif (ref($element->value) eq "ARRAY"){
       $self->is_exe_array(1);
     }
@@ -336,7 +357,8 @@ sub _element_sql {
   
 }
 
-sub _table_sql {
+
+sub _table_sql {
   my $self = shift;
   my ($view) = @_;
   
@@ -377,7 +399,8 @@ sub _elements_sql {
   my $sql = join(", ",@fields);
   return $sql;
 }
-
+
+
 sub _select {
     
     my $self             = shift;
@@ -400,7 +423,8 @@ sub _select {
 
 }
 
-sub _insert_update_container {
+
+sub _insert_update_container {
   my $self = shift;
   my ($action,$container) = @_;
   
@@ -470,7 +494,8 @@ sub _update {
       if $self->da_warning()>=5;
 
     my (@field_sql) = $self->_insert_update_container(Database::Accessor::Constants::UPDATE,$container);
-    
+    
+
     # foreach my $key ( sort(keys( %{$container} )) ) {
         # my $field = $self->get_element_by_name($key);
         # next
@@ -504,7 +529,8 @@ sub _insert {
       if $self->da_warning()>=5;
     
     my (@field_sql) = $self->_insert_update_container(Database::Accessor::Constants::CREATE,$container);
-          
+        
+  
     my $fields_clause = join(" ",Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
                         join(", ",@field_sql),
                         Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
