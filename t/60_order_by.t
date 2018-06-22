@@ -28,7 +28,8 @@ my $in_hash = {
         },
     ],
 };
-my $tests = [{
+ 
+my $tests = [{
     key  =>'sorts',
     sorts => [
              {name => 'last_name',
@@ -43,16 +44,24 @@ my $in_hash = {
     sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
 }];
 
-
-use Test::More  tests => 2;
+
+
+
+use Test::More  tests => 2;
 
 my $utils =  Test::Utils->new();
-
+
+
 
 my $da     = Database::Accessor->new($in_hash);
 my $dbh = $utils->connect();
 
-foreach my $test (@{$tests}){
+
+
+foreach my $test (@{$tests}){
    
-  $utils->sql_param_ok($dbh,$in_hash,$test);
-}                  
+  $utils->sql_param_ok($dbh,$in_hash,$test);
+
+
+}                  
+
