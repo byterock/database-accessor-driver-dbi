@@ -8,8 +8,6 @@ use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
 
-
-
 my $in_hash = {
     da_compose_only=>1,
     view     => { name => 'people' },
@@ -42,7 +40,8 @@ my $in_hash = {
         ],
     links => []
 };
-my $tests = [{
+
+my $tests = [{
     index=>0,
     key  =>'links',
     links =>{type=>'LEFT',
@@ -56,15 +55,22 @@ my $in_hash = {
 params  => ['test1']
 }];
 
-
-use Test::More  tests => 2;
+
+
+
+use Test::More  tests => 2;
 
 my $utils =  Test::Utils->new();
-
+
+
 
 my $da     = Database::Accessor->new($in_hash);
 my $dbh = $utils->connect();
-foreach my $test (@{$tests}){
+
+foreach my $test (@{$tests}){
    
-  $utils->sql_param_ok($dbh,$in_hash,$test);
-}                  
+  $utils->sql_param_ok($dbh,$in_hash,$test);
+
+
+}                  
+
