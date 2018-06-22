@@ -8,7 +8,7 @@ BEGIN {
     require_ok('Database::Accessor') || print "Bail out!";
     require_ok('DBI')                || print "Bail out!";
 }
-my $in_hash = { da_compose_only=>1,
+my $in_hash = { da_compose_only=>1,
                 view => { name  => 'name' }};
 my $da      = Database::Accessor->new($in_hash);
 my $return  = {};
@@ -21,4 +21,4 @@ if ($@) {
 }
 else {
     pass("Database::Accessor::Driver::DBI Loaded");
-}
+}
