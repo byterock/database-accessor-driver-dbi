@@ -9,7 +9,9 @@ use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
 my $utils = Test::Utils->new();
-my $in_hash = {
+
+
+my $in_hash = {
     da_compose_only=>1,
     view     => { name => 'people' },
     elements => [
@@ -57,7 +59,8 @@ my $container =  {first_name=>'Bill',
 my $da     = Database::Accessor->new($in_hash);
 $da->create( $utils->connect(),$container);
 
-
+
+
 cmp_deeply(
            $da->result()->params,
            [qw(Bill Bloggings)],
@@ -97,11 +100,13 @@ $expected  = [['Bill','Bloggings'],
 $da->create( $utils->connect(),$container);
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","Array create SQL correct");
 
-warn("s=".Dumper($da->result()));
+
+warn("s=".Dumper($da->result()));
 for (my $index = 0; $index < $da->result()->param_count; $index++){
   
     cmp_deeply(
            $da->result()->params->[$index],
            $expected->[$index],
            "Array create tuple $index are correct"
-          );}
+          );
+}
