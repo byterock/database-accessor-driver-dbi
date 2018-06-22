@@ -8,10 +8,7 @@ use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
 
-
-
-
-my $tests = [{
+my $tests = [{
     index=>0,
     key  =>'conditions',
     conditions => { left =>{function => 'length',
@@ -21,10 +18,12 @@ use Test::Utils;
     sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people WHERE length(people.last_name) = ?",
     params  => [3]
 }];
-use Test::More  tests => 12;
+
+use Test::More  tests => 12;
 
 my $utils =  Test::Utils->new();
-my $in_hash = {
+
+my $in_hash = {
     da_compose_only=>1,
     view     => { name => 'people' },
     elements => [
@@ -80,9 +79,14 @@ my $da     = Database::Accessor->new($in_hash);
 # ok($da->delete( $utils->connect() ),"deleted something");
 # ok($da->result()->query() eq "DELETE FROM people WHERE ( people.first_name = ? AND people.last_name = ? )","delete SQL correct");
 
-$in_hash->{conditions} = [''];
+
+$in_hash->{conditions} = [''];
 my $dbh = $utils->connect();
-foreach my$test (@{$tests}){
+
+foreach my$test (@{$tests}){
    
-  $utils->sql_param_ok($dbh,$in_hash,$test);
-}                  
+  $utils->sql_param_ok($dbh,$in_hash,$test);
+
+
+}                  
+
