@@ -6,6 +6,7 @@ use Data::Dumper;
 use Cwd;
 use strict;
 use Test::More;
+use Database::Accessor;
 use Test::Deep qw(cmp_deeply); use Moose;
 sub db {
   my $self = shift;
@@ -37,19 +38,28 @@ sub connect {
   
 
 
+
+
 sub sql_param_ok {
     my $self = shift;
-    my ( $dbh, $in_hash, $opts ) = @_;
-    $in_hash->{ $opts->{key} }->[ $opts->{index} ] = $opts->{ $opts->{key} };
+    my ($in_hash,$tests ) = @_;
+    my $da     = Database::Accessor->new($in_hash);
+    foreach my $test (@{$tests}){    if (exists($test->{index})) {
+      $in_hash->{ $test->{key} }->[ $test->{index} ] = $test->{ $test->{key} };
+    }
+    else {
+      $in_hash->{ $test->{key} } = $test->{ $test->{key} };
+    }
     my $da = Database::Accessor->new($in_hash);
-    $da->retrieve($dbh);
-    warn(Dumper($da->result()->query()));
+    $da->retrieve($self->connect());
     ok(
-        $da->result()->query() eq $opts->{sql},
-        $opts->{caption} . " SQL correct"
+        $da->result()->query() eq $test->{sql},
+        $test->{caption} . " SQL correct"
     );
-    cmp_deeply( $da->result()->params, $opts->{params},
-        $opts->{caption} . " params correct" );
+    cmp_deeply( $da->result()->params, $test->{params},
+        $test->{caption} . " params correct" )
+      if (exists($test->{params}));
+    }
 }     # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;
 # $sth->dump_results if $sth->{NUM_OF_FIELDS};
