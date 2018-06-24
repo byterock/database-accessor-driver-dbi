@@ -63,14 +63,16 @@ use Test::More  tests => 2;
 my $utils =  Test::Utils->new();
 
 
+my $utils =  Test::Utils->new();
+$utils->sql_param_ok($in_hash,$tests);
 
-my $da     = Database::Accessor->new($in_hash);
-my $dbh = $utils->connect();
+# my $da     = Database::Accessor->new($in_hash);
+# my $dbh = $utils->connect();
 
-foreach my $test (@{$tests}){
+# foreach my $test (@{$tests}){
    
-  $utils->sql_param_ok($dbh,$in_hash,$test);
+  # $utils->sql_param_ok($dbh,$in_hash,$test);
 
 
-}                  
+# }                  
 

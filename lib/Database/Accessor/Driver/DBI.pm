@@ -254,9 +254,9 @@ sub _predicate_sql {
       
       
 
-       $clause .= join(" ",$self->_element_sql($predicate->left),
+       $clause .= join(" ",$self->_field_sql($predicate->left),
                 $predicate->operator,
-                $self->_element_sql($predicate->right));
+                $self->_field_sql($predicate->right));
 
      }
 
@@ -269,12 +269,11 @@ sub _predicate_sql {
     return $clause;
 }
 
-sub _element_sql {
+sub _field_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
-  warn(Dumper($element));
   if (ref($element) eq "Database::Accessor::Expression"){
-      my $left_sql = $self->_element_sql($element->left());
+      my $left_sql = $self->_field_sql($element->left());
       my @right_sql;
 
       if (ref($element->right()) ne "Array"){
@@ -283,7 +282,7 @@ sub _element_sql {
          if ($param);
       }
       foreach my $param (@{$element->right()}){
-        push(@right_sql,$self->_element_sql($param));
+        push(@right_sql,$self->_field_sql($param));
       }        
       my $right_sql = join(',',@right_sql);
       return  Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
@@ -295,7 +294,7 @@ sub _element_sql {
   
   }
   elsif (ref($element) eq "Database::Accessor::Function"){
-      my $left_sql = $self->_element_sql($element->left());
+      my $left_sql = $self->_field_sql($element->left());
       my @right_sql;
       
       my $comma = "";
@@ -306,7 +305,7 @@ sub _element_sql {
            $element->right([$param]);
         }
         foreach my $param (@{$element->right()}){
-          push(@right_sql,$self->_element_sql($param));
+          push(@right_sql,$self->_field_sql($param));
         }        
       }
       my $right_sql = join(',',@right_sql);
@@ -380,7 +379,7 @@ sub _delete {
 
     my $delete_clause    = join(" ",Database::Accessor::Driver::DBI::SQL::DELETE
                                    ,Database::Accessor::Driver::DBI::SQL::FROM
-                                   ,$self->_view_sql($self->view));
+                                   ,$self->_table_sql($self->view));
     
     $self->da_warn("_delete","Delete clause='$delete_clause'")
       if $self->da_warning()>=5;
@@ -394,7 +393,7 @@ sub _elements_sql {
   my ($elements) = @_;
   my @fields = ();   
   foreach my $field ( @{$elements} ) {
-     push(@fields,$self->_element_sql($field,1));
+     push(@fields,$self->_field_sql($field,1));
   }
   my $sql = join(", ",@fields);
   return $sql;
@@ -440,12 +439,12 @@ sub _insert_update_container {
         push(@fields,$field);
         if ($action eq Database::Accessor::Constants::UPDATE){
            push(@field_sql,join(" ",
-                          $self->_element_sql($field),
+                          $self->_field_sql($field),
                           '=',
                           Database::Accessor::Driver::DBI::SQL::PARAM));
         }
         else {
-          push(@field_sql, $self->_element_sql($field));
+          push(@field_sql, $self->_field_sql($field));
         }
         $self->add_param([]);
       }
@@ -466,12 +465,12 @@ sub _insert_update_container {
          if(!$field);
          if ($action eq Database::Accessor::Constants::UPDATE){
            push(@field_sql,join(" ",
-                          $self->_element_sql($field),
+                          $self->_field_sql($field),
                           '=',
-                          $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
+                          $self->_field_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
         }
         else {
-           push(@field_sql, $self->_element_sql($field));
+           push(@field_sql, $self->_field_sql($field));
            my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
            $self->add_param($param);
         }
@@ -501,9 +500,9 @@ sub _update {
         # next
          # if(!$field);
         # push(@fields,join(" ",
-                          # $self->_element_sql($field),
+                          # $self->_field_sql($field),
                           # '=',
-                          # $self->_element_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
+                          # $self->_field_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
     # }
    
     my $set_clause = join(" ",Database::Accessor::Driver::DBI::SQL::SET,

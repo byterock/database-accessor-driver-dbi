@@ -52,10 +52,13 @@ sub connect {
     }
     my $da = Database::Accessor->new($in_hash);
     $da->retrieve($self->connect());
-    ok(
+    my $ok =   ok(
         $da->result()->query() eq $test->{sql},
         $test->{caption} . " SQL correct"
     );
+    unless($ok){
+      diag("Expected SQL--> ".$test->{sql}."\nGenerated SQL-> ".$da->result()->query()); 
+                }
     cmp_deeply( $da->result()->params, $test->{params},
         $test->{caption} . " params correct" )
       if (exists($test->{params}));

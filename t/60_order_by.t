@@ -37,7 +37,7 @@ my $tests = [{
             },
             {
               name => 'first_name',
-              view => 'people'
+              #view => 'people'
             },
             ],
     caption => "Order by ",
