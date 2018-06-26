@@ -16,15 +16,15 @@ my $in_hash = {
     elements => [
         {
             name => 'first_name',
-            view => 'people'
+        #    view => 'people'
         },
         {
             name => 'last_name',
-            view => 'people'
+        #    view => 'people'
         },
         {
             name => 'user_id',
-            view => 'people'
+        #    view => 'people'
         },
     ],
 };
@@ -33,7 +33,7 @@ my $tests = [{
     key  =>'sorts',
     sorts => [
              {name => 'last_name',
-              view => 'people'
+            #  view => 'people'
             },
             {
               name => 'first_name',

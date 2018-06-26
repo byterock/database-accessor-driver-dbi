@@ -14,7 +14,7 @@ my $in_hash = {
     elements => [
         {
             name => 'first_name',
-            view => 'people'
+            # view => 'people'
         },
         {
             name => 'last_name',
@@ -33,7 +33,7 @@ my $in_hash = {
         {
             left => {
                 name => 'first_name',
-                view => 'people'
+                #view => 'people'
             },
             right           => { value => 'test1' },
         },

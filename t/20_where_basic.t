@@ -80,7 +80,7 @@ ok($da->delete( $utils->connect() ),"deleted something");
 ok($da->result()->query() eq "DELETE FROM people WHERE ( people.first_name = ? AND people.last_name = ? )","delete SQL correct");
 
 
-$in_hash->{conditions} = [''];
+$in_hash->{conditions} = [];
 
 $utils->sql_param_ok($in_hash,$tests);
 
