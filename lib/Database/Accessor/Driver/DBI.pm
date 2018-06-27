@@ -220,6 +220,7 @@ sub _predicate_clause {
     warn("constion-".Dumper($conditions));
     foreach my $condition ( @{$conditions} ) {
        if (ref($condition) eq 'Database::Accessor::Condition'){
+        foreach my $predicate (  $condition->predicates } ) {
           $predicate_clause .= $self->_predicate_sql($predicate);
         }
       }
