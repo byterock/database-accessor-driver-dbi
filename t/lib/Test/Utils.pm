@@ -42,26 +42,30 @@ sub connect {
 
 sub sql_param_ok {
     my $self = shift;
-    my ($in_hash,$tests ) = @_;
-    my $da     = Database::Accessor->new($in_hash);
-    foreach my $test (@{$tests}){    if (exists($test->{index})) {
-      $in_hash->{ $test->{key} }->[ $test->{index} ] = $test->{ $test->{key} };
-    }
-    else {
-      $in_hash->{ $test->{key} } = $test->{ $test->{key} };
-    }
-    my $da = Database::Accessor->new($in_hash);
-    $da->retrieve($self->connect());
-    my $ok =   ok(
-        $da->result()->query() eq $test->{sql},
-        $test->{caption} . " SQL correct"
-    );
-    unless($ok){
-      diag("Expected SQL--> ".$test->{sql}."\nGenerated SQL-> ".$da->result()->query()); 
-                }
-    cmp_deeply( $da->result()->params, $test->{params},
-        $test->{caption} . " params correct" )
-      if (exists($test->{params}));
+    my ( $in_hash, $tests ) = @_;
+    foreach my $test ( @{$tests} ) {
+        if ( exists( $test->{index} ) ) {
+            $in_hash->{ $test->{key} }->[ $test->{index} ] =
+              $test->{ $test->{key} };
+        }
+        else {
+            $in_hash->{ $test->{key} } = $test->{ $test->{key} };
+        }
+        my $da = Database::Accessor->new($in_hash);
+        $da->retrieve( $self->connect() );        
+        my $ok = ok(
+            $da->result()->query() eq $test->{sql},
+            $test->{caption} . " SQL correct"
+        );
+        unless ($ok) {
+            diag(   "Expected SQL--> "
+                  . $test->{sql}
+                  . "\nGenerated SQL-> "
+                  . $da->result()->query() );
+        }
+        cmp_deeply( $da->result()->params, $test->{params},
+            $test->{caption} . " params correct" )
+          if ( exists( $test->{params} ) );
     }
 }     # my $sth = $dbh->prepare("SELECT * FROM user");
 # $sth->execute;

@@ -200,7 +200,7 @@ sub _join_clause {
                          ,Database::Accessor::Driver::DBI::SQL::ON
                          , $self->_predicate_clause( 
                              Database::Accessor::Driver::DBI::SQL::JOIN,
-                             $join->predicates() )
+                             $join->conditions() )
                           );
                          
        push(@join_clauses,$clause );
@@ -216,9 +216,10 @@ sub _predicate_clause {
     my $self = shift;
     my ( $clause_type, $conditions ) = @_;
     my $predicate_clause = "";
+    
+    warn("constion-".Dumper($conditions));
     foreach my $condition ( @{$conditions} ) {
        if (ref($condition) eq 'Database::Accessor::Condition'){
-        foreach my $predicate ( @{ $condition->predicates } ) {
           $predicate_clause .= $self->_predicate_sql($predicate);
         }
       }
