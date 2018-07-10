@@ -1,5 +1,5 @@
 #!perl
-use Test::More  tests => 4;
+use Test::More  tests => 7;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');

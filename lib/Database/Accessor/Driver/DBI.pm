@@ -43,25 +43,31 @@ sub execute {
     
     my $sql;
     if ( $action eq Database::Accessor::Constants::CREATE ) {
+        
         $sql = $self->_insert($container);
+        $sql .= $self->_join_clause();
     }
     elsif ( $action eq Database::Accessor::Constants::UPDATE ) {
         $sql = $self->_update($container);
+        $sql .= $self->_join_clause();
+        $sql .= $self->_where_clause();
+        
     }
     elsif ( $action eq Database::Accessor::Constants::DELETE ) {
         $sql = $self->_delete();
+        $sql .= $self->_where_clause();
+        
     }
     else {
         $sql = $self->_select();
+        $sql .= $self->_join_clause();
+        $sql .= $self->_where_clause();
+        $sql .= $self->_group_by_clause();
+        
     }
     
-    $sql .= $self->_join_clause();
-    $sql .= $self->_where_clause();
-    $sql .= $self->_group_by_clause();
     $sql .= $self->_order_by_clause();
     
-    
-
     $result->query($sql);
     $self->da_warn('execute',"SQL=$sql")
       if $self->da_warning()>=1;
@@ -217,7 +223,7 @@ sub _predicate_clause {
     my ( $clause_type, $conditions ) = @_;
     my $predicate_clause = "";
     
-    warn("constion-".Dumper($conditions));
+    # warn("constion-".Dumper($conditions));
     foreach my $condition ( @{$conditions} ) {
        if (ref($condition) eq 'Database::Accessor::Condition'){
         # foreach my $predicate (  $condition->predicates } ) {
