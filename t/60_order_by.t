@@ -28,6 +28,54 @@ my $in_hash = {
         },
     ],
 };
+my $expression = {
+    expression => '+',
+    left       => {
+        expression        => '*',
+        open_parentheses  => 1,
+        close_parentheses => 1,
+        left              => {
+            expression        => '*',
+            open_parentheses  => 1,
+            close_parentheses => 1,
+            left              => {
+                function => 'abs',
+                left     => {
+                    open_parentheses  => 1,
+                    close_parentheses => 1,
+                    expression => '+',
+                    left       => { name => 'salary' },
+                    right      => { value => '0.5' }
+                },
+            },
+            right => { value => '1.5' },
+        },
+        right => { name => 'overtime' },
+    },
+    right => {
+        expression        => '*',
+        open_parentheses  => 1,
+        close_parentheses => 1,
+        left              => {
+            expression        => '*',
+            open_parentheses  => 1,
+            close_parentheses => 1,
+            left              => {
+                function => 'abs',
+                left     => {
+                    open_parentheses  => 1,
+                    close_parentheses => 1,
+                    expression => '+',
+                    left       => { name => 'salary' },
+                    right      => { value => '0.5' }
+                },
+            },
+            right => { value => '2' },
+        },
+        right => { name => 'doubletime' },
+    },
+};
+
  
 my $tests = [{
     key  =>'sorts',
@@ -40,11 +88,17 @@ my $tests = [{
               #view => 'people'
             },
             ],
-    caption => "Order by ",
+    caption => "Simple Order by ",
     sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
+},{
+    key  =>'sorts',
+    sorts => [$expression],
+    caption => "Complex Expression in Order by ",
+    sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
+    params  => ['0.5','1.5','0.5','2']
 }];
 
-use Test::More  tests =>1;
+use Test::More  tests =>2;
 my $utils =  Test::Utils->new();
 $utils->sql_param_ok($in_hash,$tests);
 

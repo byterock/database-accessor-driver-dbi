@@ -45,7 +45,6 @@ sub execute {
     if ( $action eq Database::Accessor::Constants::CREATE ) {
         
         $sql = $self->_insert($container);
-        $sql .= $self->_join_clause();
     }
     elsif ( $action eq Database::Accessor::Constants::UPDATE ) {
         $sql = $self->_update($container);
@@ -55,6 +54,7 @@ sub execute {
     }
     elsif ( $action eq Database::Accessor::Constants::DELETE ) {
         $sql = $self->_delete();
+        $sql .= $self->_join_clause();
         $sql .= $self->_where_clause();
         
     }
@@ -281,9 +281,13 @@ sub _field_sql {
   my $self = shift;
   my ($element,$use_alias) = @_;
   if (ref($element) eq "Database::Accessor::Expression"){
-      my $left_sql = $self->_field_sql($element->left());
+      my $left_sql;
+      $left_sql = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+         if ( $element->open_parentheses() );
+     
+      
+      $left_sql .= $self->_field_sql($element->left());
       my @right_sql;
-
       if (ref($element->right()) ne "Array"){
          my $param = $element->right();
          $element->right([$param])
@@ -293,12 +297,13 @@ sub _field_sql {
         push(@right_sql,$self->_field_sql($param));
       }        
       my $right_sql = join(',',@right_sql);
-      return  Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
-             .join(" "
+      $right_sql   .= Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
+         if ( $element->close_parentheses() );
+      
+      return join(" "
              ,$left_sql
              ,$element->expression
-             ,$right_sql)
-             .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
+             ,$right_sql);
   
   }
   elsif (ref($element) eq "Database::Accessor::Function"){
