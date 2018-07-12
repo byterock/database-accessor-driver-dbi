@@ -279,7 +279,7 @@ sub _predicate_sql {
 
 sub _field_sql {
   my $self = shift;
-  my ($element,$use_alias) = @_;
+  my ($element,$use_view) = @_;
   if (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql;
       $left_sql = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
@@ -355,14 +355,13 @@ sub _field_sql {
     return Database::Accessor::Driver::DBI::SQL::PARAM;
   }
   else {
-    my $sql = $element->view
+    my $sql = $element->name;
+    
+    $sql = $element->view
            ."."
-           .$element->name;
-    $sql .= join(" ",
-                 "",
-                 Database::Accessor::Driver::DBI::SQL::AS, 
-                 $element->alias())
-       if ($element->alias and $use_alias );
+           .$element->name
+      if ($use_view );
+       
     return $sql;
        
   }
@@ -372,14 +371,14 @@ sub _field_sql {
 
 sub _table_sql {
   my $self = shift;
-  my ($view) = @_;
+  my ($view,$use_alias) = @_;
   
   my $sql = $view->name;
   
   $sql = join(" ",
                $view->name,
                $view->alias)
-    if $view->alias();
+    if ($use_alias and $view->alias());
   return $sql;
               
 }
@@ -406,7 +405,17 @@ sub _elements_sql {
   my ($elements) = @_;
   my @fields = ();   
   foreach my $field ( @{$elements} ) {
-     push(@fields,$self->_field_sql($field,1));
+    
+    my $sql = $self->_field_sql($field,1);
+    
+    $sql .= join(" ",
+         "",
+         Database::Accessor::Driver::DBI::SQL::AS, 
+         $field->alias())
+      if ($field->alias());
+      
+     push(@fields,$sql);
+     
   }
   my $sql = join(", ",@fields);
   return $sql;
@@ -425,7 +434,7 @@ sub _select {
 
     my $from_clause = join(" ",
                        Database::Accessor::Driver::DBI::SQL::FROM,
-                       $self->_table_sql($self->view)
+                       $self->_table_sql($self->view,1)
                        );
                         
     $self->da_warn("_select"," From clause='$from_clause'")

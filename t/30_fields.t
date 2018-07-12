@@ -202,7 +202,7 @@ cmp_deeply(
           );
 
 $in_hash->{elements}->[1] = { function => 'abs',
-                                 left  => { expression => '*',
+                                 left  => { expression1 => '*',
                                                  left  => { name => 'bonus' },
                                                  right => { param=>-.05 }} };
 

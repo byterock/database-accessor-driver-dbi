@@ -36,7 +36,7 @@ sub connect {
     $dbh->do($sql);
   }
   
-
+}
 
 
 
@@ -44,48 +44,39 @@ sub connect {
     my $self = shift;
     my ( $in_hash, $tests ) = @_;
     foreach my $test ( @{$tests} ) {
-        if ( exists( $test->{index} ) ) {
-            $in_hash->{ $test->{key} }->[ $test->{index} ] =
-              $test->{ $test->{key} };
-        }
-        else {
-            $in_hash->{ $test->{key} } = $test->{ $test->{key} };
-        }
-        my $da = Database::Accessor->new($in_hash);
-        $da->retrieve( $self->connect() );        
-        my $ok = ok(
-            $da->result()->query() eq $test->{sql},
-            $test->{caption} . " SQL correct"
-        );
-        unless ($ok) {
+        
+        foreach my $action ((qw(create retrieve update delete))){
+          next 
+            unless(exists($test->{$action}));
+                      
+          my $sub_test = $test->{$action};
+          
+          if ( exists( $sub_test->{index} ) ) {
+            $in_hash->{ $sub_test->{key} }->[ $sub_test->{index} ] =
+              $sub_test->{ $sub_test->{key} };
+          }
+          elsif ( exists( $sub_test->{key} ) ) {
+            $in_hash->{ $sub_test->{key} } = $sub_test->{ $sub_test->{key} };
+          }
+          my $da = Database::Accessor->new($in_hash);
+          $da->$action( $self->connect(), $sub_test->{container});        
+          
+          my $ok = ok(
+            $da->result()->query() eq $sub_test->{sql},
+            $test->{caption} . " $action SQL correct"
+          );
+          unless ($ok) {
             diag(   "Expected SQL--> "
-                  . $test->{sql}
+                  . $sub_test->{sql}
                   . "\nGenerated SQL-> "
                   . $da->result()->query() );
+          }
+          cmp_deeply( $da->result()->params, $sub_test->{params},
+            $test->{caption} . " $action params correct" )
+            if ( exists( $sub_test->{params} ) );
         }
-        cmp_deeply( $da->result()->params, $test->{params},
-            $test->{caption} . " params correct" )
-          if ( exists( $test->{params} ) );
     }
-}     # my $sth = $dbh->prepare("SELECT * FROM user");
-# $sth->execute;
-# $sth->dump_results if $sth->{NUM_OF_FIELDS};
- # $dbh->disconnect;
 }
+1;
 
-1;
-
-# my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>$dir."/test/db"});
-# my @sql = ("DROP TABLE IF EXISTS users",
-           # "CREATE TABLE users ( username TEXT, address TEXT)",
-           # "INSERT INTO users VALUES ( 'user1',  1)",
-           # "INSERT INTO users VALUES ( 'user2',  2)",
-# );
-# foreach my $sql (@sql ){
-  # $dbh->do($sql);
-# }
-
-# my $sth = $dbh->prepare("SELECT * FROM users");
-# $sth->execute;
-# $sth->dump_results if $sth->{NUM_OF_FIELDS};
-# $dbh->disconnect;
+

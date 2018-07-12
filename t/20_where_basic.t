@@ -71,6 +71,8 @@ my $container =  {first_name=>'Bill',
                   last_name =>'Bloggings'};
 my $da     = Database::Accessor->new($in_hash);
 ok($da->create( $utils->connect(),$container),"created something");
+
+# warn("create=".Dumper($da->result()->query()));
 ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","create SQL correct");
 ok($da->retrieve( $utils->connect() ),"retrieved something");
 ok($da->result()->query() eq "SELECT people.first_name, people.last_name, people.user_id FROM people WHERE ( people.first_name = ? AND people.last_name = ? )","retrieve SQL correct");
