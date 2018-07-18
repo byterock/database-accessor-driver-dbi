@@ -89,6 +89,8 @@ sub execute {
       $result->params([map({$_->value} @{$self->params} )]);
     }
     
+    
+   
     return 1
        if $self->da_compose_only();
        
@@ -159,7 +161,7 @@ sub _order_by_clause {
     return " "
       . join( " ",
         Database::Accessor::Driver::DBI::SQL::ORDER_BY,
-        $self->_elements_sql( $self->sorts() ) );
+        $self->_fields_sql( $self->sorts() ) );
 }
 
 sub _group_by_clause {
@@ -169,7 +171,7 @@ sub _group_by_clause {
     my $having = $self->gather;
     return " ".join(" "
                 ,Database::Accessor::Driver::DBI::SQL::GROUP_BY
-                ,$self->_elements_sql($having->elements())
+                ,$self->_fields_sql($having->elements())
                 ,$having->condition_count >=1 
                   ? join(" "
                         ,Database::Accessor::Driver::DBI::SQL::HAVING
@@ -280,13 +282,14 @@ sub _predicate_sql {
 sub _field_sql {
   my $self = shift;
   my ($element,$use_view) = @_;
+   # warn("JPS ".Dumper($element).",use_view=$use_view");
   if (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql;
       $left_sql = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
          if ( $element->open_parentheses() );
      
       
-      $left_sql .= $self->_field_sql($element->left());
+      $left_sql .= $self->_field_sql($element->left(),$use_view);
       my @right_sql;
       if (ref($element->right()) ne "Array"){
          my $param = $element->right();
@@ -294,7 +297,7 @@ sub _field_sql {
          if ($param);
       }
       foreach my $param (@{$element->right()}){
-        push(@right_sql,$self->_field_sql($param));
+        push(@right_sql,$self->_field_sql($param),$use_view);
       }        
       my $right_sql = join(',',@right_sql);
       $right_sql   .= Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
@@ -307,7 +310,7 @@ sub _field_sql {
   
   }
   elsif (ref($element) eq "Database::Accessor::Function"){
-      my $left_sql = $self->_field_sql($element->left());
+      my $left_sql = $self->_field_sql($element->left(),$use_view);
       my @right_sql;
       
       my $comma = "";
@@ -318,10 +321,11 @@ sub _field_sql {
            $element->right([$param]);
         }
         foreach my $param (@{$element->right()}){
-          push(@right_sql,$self->_field_sql($param));
+          push(@right_sql,$self->_field_sql($param,$use_view));
         }        
       }
       my $right_sql = join(',',@right_sql);
+      warn("right_sql=$right_sql");
       return $element->function
              .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
              .$left_sql
@@ -399,7 +403,7 @@ sub _delete {
 
 }
 
-sub _elements_sql {
+sub _fields_sql {
   
   my $self = shift;
   my ($elements) = @_;
@@ -408,11 +412,17 @@ sub _elements_sql {
     
     my $sql = $self->_field_sql($field,1);
     
-    $sql .= join(" ",
+    if ($field->alias()) {
+      my $alias = $field->alias();
+      $alias = '"'
+              . $alias
+              .'"'
+        if (index($alias," ") !=-1);
+        
+      $sql .= join(" ",
          "",
-         Database::Accessor::Driver::DBI::SQL::AS, 
-         $field->alias())
-      if ($field->alias());
+         $alias);
+     }
       
      push(@fields,$sql);
      
@@ -428,7 +438,7 @@ sub _select {
     my ($container)      = @_;
     my $select_clause    = join(" "
                                ,Database::Accessor::Driver::DBI::SQL::SELECT
-                               ,$self->_elements_sql($self->elements()));
+                               ,$self->_fields_sql($self->elements()));
     $self->da_warn("_select","Select clause='$select_clause'")
       if $self->da_warning()>=5;
 
