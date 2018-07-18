@@ -1,5 +1,5 @@
 #!perl
-use Test::More tests => 84;
+use Test::More tests => 85;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
@@ -274,17 +274,19 @@ my $tests = [
         },
         delete => { sql => "DELETE FROM people" },
     },
-     {
+    {
         caption  => '2 Fields and an expression in a function',
         key      => 'elements',
         elements => [
             { name => 'first_name', },
             { name => 'last_name', },
-            { function => 'abs',
-              left     => { expression => '*',
-                            left       => { name => 'bonus' },
-                            right      => { param => -0.05 }
-                           }
+            {
+                function => 'abs',
+                left     => {
+                    expression => '*',
+                    left       => { name => 'bonus' },
+                    right      => { param => -0.05 }
+                }
             }
         ],
         create => {
@@ -312,11 +314,14 @@ my $tests = [
         elements => [
             { name => 'first_name', },
             { name => 'last_name', },
-            { expression => '*',
-              left       => { name => 'bonus' },
-              right      => { function =>'abs',
-                              left     =>  { param => '-0.1' } }
-                           }
+            {
+                expression => '*',
+                left       => { name => 'bonus' },
+                right      => {
+                    function => 'abs',
+                    left     => { param => '-0.1' }
+                }
+            }
         ],
         create => {
             container => $container,
@@ -337,26 +342,37 @@ my $tests = [
         },
         delete => { sql => "DELETE FROM people" },
     },
-     {
-        caption  => '2 Fields and a function in an expression and function in an expression all with alias',
+    {
+        caption =>
+'2 Fields and a function in an expression and function in an expression all with alias',
         key      => 'elements',
         elements => [
-            { name => 'first_name',
-              alias=>  'first' },
-            { name => 'last_name',
-              alias=> 'last' },
-            { expression => '*',
-              left       => { name => 'bonus' },
-              right      => { function =>'abs',
-                              left     =>  { param => '-0.1' } },
-                           
-              alias=>'Bonus'},
-            { function => 'abs',
-              left     => { expression => '*',
-                            left       => { name => 'bonus' },
-                            right      => { param => -0.05 }
-                           },
-               alias   => 'Secondary Bonus'                           
+            {
+                name  => 'first_name',
+                alias => 'first'
+            },
+            {
+                name  => 'last_name',
+                alias => 'last'
+            },
+            {
+                expression => '*',
+                left       => { name => 'bonus' },
+                right      => {
+                    function => 'abs',
+                    left     => { param => '-0.1' }
+                },
+
+                alias => 'Bonus'
+            },
+            {
+                function => 'abs',
+                left     => {
+                    expression => '*',
+                    left       => { name => 'bonus' },
+                    right      => { param => -0.05 }
+                },
+                alias => 'Secondary Bonus'
             }
         ],
         create => {
@@ -369,7 +385,7 @@ my $tests = [
         retrieve => {
             sql =>
 'SELECT people.first_name first, people.last_name last, people.bonus * abs(?) Bonus, abs(people.bonus * ?) "Secondary Bonus" FROM people',
-            params => [-0.1,-0.05]
+            params => [ -0.1, -0.05 ]
         },
         update => {
             container => { first_name => 'Robert' },
@@ -378,28 +394,39 @@ my $tests = [
         },
         delete => { sql => "DELETE FROM people" },
     },
-     {
-        caption  => '2 Fields and a function in an expression and function in an expression all with alias even sub expression/functions',
+    {
+        caption =>
+'2 Fields and a function in an expression and function in an expression all with alias even sub expression/functions',
         key      => 'elements',
         elements => [
-            { name => 'first_name',
-              alias=>  'first' },
-            { name => 'last_name',
-              alias=> 'last' },
-            { expression => '*',
-              left       => { name => 'bonus' },
-              right      => { function =>'abs',
-                              left     => { param => '-0.1' },
-                              alias    => 'do not show function alias' },
-                           
-              alias=>'Bonus'},
-            { function => 'abs',
-              left     => { expression => '*',
-                            left       => { name => 'bonus' },
-                            right      => { param => -0.05 },
-                            alias     => 'do not show expression alias' 
-                           },
-               alias   => 'Secondary Bonus'                           
+            {
+                name  => 'first_name',
+                alias => 'first'
+            },
+            {
+                name  => 'last_name',
+                alias => 'last'
+            },
+            {
+                expression => '*',
+                left       => { name => 'bonus' },
+                right      => {
+                    function => 'abs',
+                    left     => { param => '-0.1' },
+                    alias    => 'do not show function alias'
+                },
+
+                alias => 'Bonus'
+            },
+            {
+                function => 'abs',
+                left     => {
+                    expression => '*',
+                    left       => { name => 'bonus' },
+                    right      => { param => -0.05 },
+                    alias      => 'do not show expression alias'
+                },
+                alias => 'Secondary Bonus'
             }
         ],
         create => {
@@ -412,7 +439,7 @@ my $tests = [
         retrieve => {
             sql =>
 'SELECT people.first_name first, people.last_name last, people.bonus * abs(?) Bonus, abs(people.bonus * ?) "Secondary Bonus" FROM people',
-            params => [-0.1,-0.05]
+            params => [ -0.1, -0.05 ]
         },
         update => {
             container => { first_name => 'Robert' },
@@ -421,71 +448,78 @@ my $tests = [
         },
         delete => { sql => "DELETE FROM people" },
     },
-      {
+    {
         caption  => 'The expression from hell with alias',
         key      => 'elements',
         elements => [
-           {
-               alias=>'This is Hell',
-    expression => '+',
-    left       => {
-        expression        => '*',
-        alias=>'do not show',
-        open_parentheses  => 1,
-        close_parentheses => 1,
-        left              => {
-             alias=>'do not show',
-            expression        => '*',
-            
-            open_parentheses  => 1,
-            close_parentheses => 1,
-            left              => {
-                 alias=>'do not show',
-                function => 'abs',
-                left     => {
-                    expression => '+',
-                     alias=>'do not show',
-                    left       => {  alias=>'do not show',name => 'salary' },
-                    right      => {  alias=>'do not show',value => '0.5' }
+            {
+                alias      => 'This is Hell',
+                expression => '+',
+                left       => {
+                    expression        => '*',
+                    alias             => 'do not show',
+                    open_parentheses  => 1,
+                    close_parentheses => 1,
+                    left              => {
+                        alias      => 'do not show',
+                        expression => '*',
+
+                        open_parentheses  => 1,
+                        close_parentheses => 1,
+                        left              => {
+                            alias    => 'do not show',
+                            function => 'abs',
+                            left     => {
+                                expression => '+',
+                                alias      => 'do not show',
+                                left =>
+                                  { alias => 'do not show', name => 'salary' },
+                                right =>
+                                  { alias => 'do not show', value => '0.5' }
+                            },
+                        },
+                        right => { alias => 'do not show', value => '1.5' },
+                    },
+                    right => {
+                        name  => 'overtime',
+                        alias => 'do not show',
+                    },
                 },
+                right => {
+                    expression        => '*',
+                    open_parentheses  => 1,
+                    close_parentheses => 1,
+                    left              => {
+                        alias             => 'do not show',
+                        expression        => '*',
+                        open_parentheses  => 1,
+                        close_parentheses => 1,
+                        left              => {
+                            function => 'abs',
+                            alias    => 'do not show',
+                            left     => {
+                                alias      => 'do not show',
+                                expression => '+',
+                                left =>
+                                  { alias => 'do not show', name => 'salary' },
+                                right =>
+                                  { alias => 'do not show', value => '0.5' }
+                            },
+                        },
+                        right => { alias => 'do not show', value => '2' },
+                    },
+                    right => { alias => 'do not show', name => 'doubletime' },
+                }
             },
-            right => {  alias=>'do not show',value => '1.5' },
-        },
-        right => { name => 'overtime',
-                   alias=>'do not show', },
-    },
-    right => {
-        expression        => '*',
-        open_parentheses  => 1,
-        close_parentheses => 1,
-        left              => {
-             alias=>'do not show',
-            expression        => '*',
-            open_parentheses  => 1,
-            close_parentheses => 1,
-            left              => {
-                function => 'abs',
-                 alias=>'do not show',
-                left     => {
-                     alias=>'do not show',
-                    expression => '+',
-                    left       => {  alias=>'do not show',name => 'salary' },
-                    right      => {  alias=>'do not show',value => '0.5' }
-                },
-            },
-            right => {  alias=>'do not show',value => '2' },
-        },
-        right => {  alias=>'do not show',name => 'doubletime' },
-    }
-    },
         ],
         retrieve => {
             sql =>
-' SELECT ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) "This is Hell" FROM people',
-            params => ['0.5','1.5','0.5','2']
+'SELECT ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) "This is Hell" FROM people',
+            params => [ '0.5', '1.5', '0.5', '2' ]
         },
-      },
+    },
 ];
+
 
 $utils->sql_param_ok( $in_hash, $tests );
 

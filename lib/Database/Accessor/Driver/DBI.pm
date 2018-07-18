@@ -282,7 +282,10 @@ sub _predicate_sql {
 sub _field_sql {
   my $self = shift;
   my ($element,$use_view) = @_;
-   # warn("JPS ".Dumper($element).",use_view=$use_view");
+   #warn("JPS ".Dumper($element).",use_view=$use_view");
+     # my ($package, $filename, $line) = caller;
+     # warn(" line=$line")
+       # if (!$use_view);
   if (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql;
       $left_sql = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
@@ -297,17 +300,16 @@ sub _field_sql {
          if ($param);
       }
       foreach my $param (@{$element->right()}){
-        push(@right_sql,$self->_field_sql($param),$use_view);
+        push(@right_sql,$self->_field_sql($param,$use_view));
       }        
       my $right_sql = join(',',@right_sql);
       $right_sql   .= Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
          if ( $element->close_parentheses() );
-      
       return join(" "
              ,$left_sql
              ,$element->expression
              ,$right_sql);
-  
+   
   }
   elsif (ref($element) eq "Database::Accessor::Function"){
       my $left_sql = $self->_field_sql($element->left(),$use_view);
@@ -321,11 +323,14 @@ sub _field_sql {
            $element->right([$param]);
         }
         foreach my $param (@{$element->right()}){
+          # warn("user view=$use_view, function right=".Dumper($param));
           push(@right_sql,$self->_field_sql($param,$use_view));
         }        
+        
       }
+      # warn("rightSQL=".Dumper(\@right_sql));
       my $right_sql = join(',',@right_sql);
-      warn("right_sql=$right_sql");
+      # warn("function $left_sql,$right_sql");   
       return $element->function
              .Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
              .$left_sql
@@ -411,7 +416,6 @@ sub _fields_sql {
   foreach my $field ( @{$elements} ) {
     
     my $sql = $self->_field_sql($field,1);
-    
     if ($field->alias()) {
       my $alias = $field->alias();
       $alias = '"'
@@ -423,7 +427,6 @@ sub _fields_sql {
          "",
          $alias);
      }
-      
      push(@fields,$sql);
      
   }
