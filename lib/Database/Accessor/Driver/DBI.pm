@@ -264,9 +264,9 @@ sub _predicate_sql {
       
       
 
-       $clause .= join(" ",$self->_field_sql($predicate->left),
+       $clause .= join(" ",$self->_field_sql($predicate->left,1),
                 $predicate->operator,
-                $self->_field_sql($predicate->right));
+                $self->_field_sql($predicate->right,1));
 
      }
 

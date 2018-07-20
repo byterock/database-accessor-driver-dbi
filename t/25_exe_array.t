@@ -1,5 +1,5 @@
 #!perl
-use Test::More  tests => 3;
+use Test::More  tests => 6;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
@@ -13,6 +13,8 @@ my $utils = Test::Utils->new();
 
 my $in_hash = {
     da_compose_only=>1,
+    update_requires_condition => 0,
+    delete_requires_condition => 0,
     view     => { name => 'people' },
     elements => [
         {
@@ -28,85 +30,39 @@ my $in_hash = {
             view => 'people'
         }
     ],
-    conditions => [
-        {
-            left => {
-                name => 'first_name',
-                view => 'people'
-            },
-            right           => { value => 'test1' },
-            operator        => '=',
-            open_parentheses  => 1,
-            close_parentheses => 0,
-        },
-        {
-            condition => 'AND',
-            left      => {
-                name => 'last_name',
-                view => 'people'
-            },
-            right           => { value => 'test2' },
-            operator        => '=',
-            open_parentheses  => 0,
-            close_parentheses => 1
-        }
-      ]
-
-    ,
 };
-my $container =  {first_name=>'Bill',
-                  last_name =>'Bloggings'};
-my $da     = Database::Accessor->new($in_hash);
-$da->create( $utils->connect(),$container);
 
-
-
-cmp_deeply(
-           $da->result()->params,
-           [qw(Bill Bloggings)],
-           "create params in correct order"
-          );
-$da->retrieve( $utils->connect() );
-
-cmp_deeply(
-           $da->result()->params,
-           [qw(test1 test2)],
-           "retrieve params in correct order"
-          );
-$da->update( $utils->connect(),$container);
-cmp_deeply(
-           $da->result()->params,
-           [qw(Bill Bloggings test1 test2)],
-           "update params in correct order"
-          );
-$da->delete( $utils->connect());
-cmp_deeply(
-           $da->result()->params,
-           [qw(test1 test2)],
-           "delete params in correct order"
-          );
-
-$container = [{first_name=>'Bill',last_name =>'Bloggings'},
+my $container = [{first_name=>'Bill',last_name =>'Bloggings'},
               {first_name=>'Jane',last_name =>'Doe'},
               {first_name=>'John',last_name =>'Doe'},
               {first_name=>'Joe',last_name =>'Blow'},
               ];
-$expected  = [['Bill','Bloggings'],
-              ['Jane','Doe'],
-              ['John','Doe'],
-              ['Joe','Blow'],
+my $expected  = [
+              ['Bill','Jane','John','Joe'],
+              ['Bloggings','Doe','Doe','Blow'],
               ];
 
-$da->create( $utils->connect(),$container);
-ok($da->result()->query() eq "INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )","Array create SQL correct");
+my $tests = [
+    {
+        caption => 'Array execute tests',
+        create  => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params =>$expected
+        },
+
+        retrieve =>
+          { sql => "SELECT people.first_name, people.last_name, people.user_id FROM people" },
+        update => {
+            container => $container,
+            sql       => "UPDATE people SET first_name = ?, last_name = ?",
+            params    => $expected
+        },
+        delete => { sql => "DELETE FROM people" },
+    },
+    ];
+
+$utils->sql_param_ok( $in_hash, $tests );
 
 
-warn("s=".Dumper($da->result()));
-for (my $index = 0; $index < $da->result()->param_count; $index++){
-  
-    cmp_deeply(
-           $da->result()->params->[$index],
-           $expected->[$index],
-           "Array create tuple $index are correct"
-          );
-}
