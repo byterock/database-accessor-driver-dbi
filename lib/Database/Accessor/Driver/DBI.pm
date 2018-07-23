@@ -204,7 +204,7 @@ sub _join_clause {
        my $clause = join(" "
                          ,$join->type,
                          ,Database::Accessor::Driver::DBI::SQL::JOIN
-                         ,$self->_table_sql($join->to)
+                         ,$self->_table_sql($join->to,1)
                          ,Database::Accessor::Driver::DBI::SQL::ON
                          , $self->_predicate_clause( 
                              Database::Accessor::Driver::DBI::SQL::JOIN,

@@ -124,22 +124,5 @@ my $tests = [
 
 $utils->sql_param_ok( $in_hash, $tests );
 
-# $in_hash->{elements}= [
-# {
-# name => 'last_name',
-# alias=>  'last'
-# },
-# {
-# name => 'first_name',
-# alias=> 'first'
-# },
-# ];
 
-# $tests->[0]->{retrieve}->{sql}="";
-# $tests->[0]->{caption} = "Basic Field alias";
-# $utils->sql_param_ok($in_hash,$tests);
-
-# $tests->[0]->{retrieve}->{sql}="SELECT sys_users.last_name last, sys_users.first_name first FROM people sys_users";
-# $tests->[0]->{caption} = "Space in Field alias";
-# $utils->sql_param_ok($in_hash,$tests);
 

@@ -582,49 +582,4 @@ my $tests = [
 my $utils = Test::Utils->new();
 $utils->sql_param_ok( $in_hash,$tests );
 
-exit;
-
-my $container = {
-    first_name => 'Bill',
-    last_name  => 'Bloggings'
-};
-my $da = Database::Accessor->new($in_hash);
-ok( $da->create( $utils->connect(), $container ), "created something" );
-
-# warn("create=".Dumper($da->result()->query()));
-ok(
-    $da->result()->query() eq
-"INSERT INTO people ( people.first_name, people.last_name ) VALUES( ?, ? )",
-    "create SQL correct"
-);
-ok( $da->retrieve( $utils->connect() ), "retrieved something" );
-ok(
-    $da->result()->query() eq
-"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE ( people.first_name = ? AND people.last_name = ?)",
-    "retrieve SQL correct"
-);
-ok( $da->update( $utils->connect(), $container ), "updated something" );
-ok(
-    $da->result()->query() eq
-"UPDATE people SET people.first_name = ?, people.last_name = ? WHERE ( people.first_name = ? AND people.last_name = ?)",
-    "update SQL correct"
-);
-ok( $da->delete( $utils->connect() ), "deleted something" );
-ok(
-    $da->result()->query() eq
-"DELETE FROM people WHERE ( people.first_name = ? AND people.last_name = ?)",
-    "delete SQL correct"
-);
-
-$in_hash->{conditions} = [];
-
-$utils->sql_param_ok( $in_hash, $tests );
-
-# my $dbh = $utils->connect();
-
-# foreach my$test (@{$tests}){
-
-# $utils->sql_param_ok($dbh,$in_hash,$test);
-
-# }
 
