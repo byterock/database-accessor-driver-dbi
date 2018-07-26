@@ -42,25 +42,31 @@ sub connect {
 
 sub sql_param_ok {
     my $self = shift;
-    my ( $in_hash, $tests ) = @_;
+    my ( $org_hash, $tests ) = @_;
+    my $in_hash = $org_hash;
     foreach my $test ( @{$tests} ) {
-        
+          if ( exists( $test->{index} ) ) {
+            $in_hash->{ $test->{key} }->[ $test->{index} ] =
+              $test->{ $test->{key} };
+          }
+          elsif ( exists( $test->{key} ) ) {
+            $in_hash->{ $test->{key} } = $test->{ $test->{key} };
+          }
+          elsif ( exists( $test->{keys} ) ) {
+            foreach my $key (@{$test->{keys}}) {
+              $in_hash->{ $key } = $test->{$key };
+            }
+          }
+              my $da = Database::Accessor->new($in_hash);
+                
         foreach my $action ((qw(create retrieve update delete))){
           next 
             unless(exists($test->{$action}));
                       
           my $sub_test = $test->{$action};
           
-          if ( exists( $sub_test->{index} ) ) {
-            $in_hash->{ $sub_test->{key} }->[ $sub_test->{index} ] =
-              $sub_test->{ $sub_test->{key} };
-          }
-          elsif ( exists( $sub_test->{key} ) ) {
-            $in_hash->{ $sub_test->{key} } = $sub_test->{ $sub_test->{key} };
-          }
-          my $da = Database::Accessor->new($in_hash);
+         
           $da->$action( $self->connect(), $sub_test->{container});        
-          
           my $ok = ok(
             $da->result()->query() eq $sub_test->{sql},
             $test->{caption} . " $action SQL correct"
@@ -71,6 +77,7 @@ sub connect {
                   . "\nGenerated SQL-> "
                   . $da->result()->query() );
           }
+
           cmp_deeply( $da->result()->params, $sub_test->{params},
             $test->{caption} . " $action params correct" )
             if ( exists( $sub_test->{params} ) );

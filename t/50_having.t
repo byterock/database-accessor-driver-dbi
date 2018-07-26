@@ -29,6 +29,45 @@ my $in_hash = {
 };
 
 my $tests = [{
+        caption  => "Having Link with 1 condition",
+         index => 0,
+            key   => 'links',
+            links => {
+                type       => 'LEFT',
+                to         => { name => 'address' },
+                conditions => [
+                    {
+                        left  => { name => 'id' },
+                        right => {
+                            name => 'user_id',
+                            view => 'address'
+                        }
+                    }
+                ]
+            },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.id, address.street FROM people LEFT JOIN address ON people.id = address.user_id WHERE people.first_name = ?",
+            params => ['test1']
+        },
+        create  => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params =>  [ 'Bill', 'Bloggings' ]
+        },
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id = address.user_id WHERE people.first_name = ?",
+            params => [ 'Bill', 'Bloggings', 'test1' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people LEFT JOIN address ON people.id = address.user_id WHERE people.first_name = ?",
+            params => ['test1']
+        },
+    },
+    {
     key  =>'gather',
     gather =>{
         elements => [

@@ -169,6 +169,18 @@ sub _group_by_clause {
     return ""
       unless ( $self->gather );
     my $having = $self->gather;
+    
+    my $group_by = " ".join(" "
+                ,Database::Accessor::Driver::DBI::SQL::GROUP_BY
+                ,$self->_fields_sql($having->elements()));
+    $group_by .=  join(" "
+                      ,""
+                      ,Database::Accessor::Driver::DBI::SQL::HAVING
+                      ,$self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::GROUP_BY,
+                                                $having->conditions ) )
+      if ($self->gather->condition_count >=1);
+    return  $group_by;
+    
     return " ".join(" "
                 ,Database::Accessor::Driver::DBI::SQL::GROUP_BY
                 ,$self->_fields_sql($having->elements())
