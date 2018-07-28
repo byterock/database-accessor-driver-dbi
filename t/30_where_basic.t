@@ -7,7 +7,7 @@ use Data::Dumper;
 use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
-use Test::More tests => 72;
+use Test::More tests => 80;
 
 my $in_hash = {
     da_compose_only => 1,
