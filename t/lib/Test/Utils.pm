@@ -23,8 +23,8 @@ sub connect {
 sub create_users_table {
   my $self = shift;
   my @sql = ("DROP TABLE IF EXISTS user",
-             "CREATE TABLE user ( user.username TEXT, user.address TEXT)",
-             "INSERT INTO user VALUES ( 'user.user1',  1)");
+             "CREATE TABLE user ( username TEXT, address TEXT)",
+             "INSERT INTO user VALUES ( 'user1',  1)");
              
   $self->do_sql(@sql); 
   
