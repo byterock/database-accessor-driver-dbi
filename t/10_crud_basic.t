@@ -19,6 +19,8 @@ my $container =  {username=>'user_new',
 
 ok($user->create($utils->connect(),
                  $container),"Create function");
+                 
+                
 ok($user->result()->effected == 1,"One row effected");
 
 delete($container->{username});
@@ -31,7 +33,7 @@ $user->add_condition({left  =>{ name  => 'username',
                   
 ok($user->update($utils->connect(),$container),"Update function");
 ok($user->result()->effected == 1,"one row effected");
-ok($user->retrieve($utils->connect()),"retrieve function");
+ok($user->retrieve($utils->connect()),"retrieve function 1");
 ok(scalar(@{$user->result()->set}) == 1,"One row returned");
 unless($user->result()->is_error) {
    ok($user->result()->set->[0]->[1] eq 'Achanged','address changed');
@@ -41,7 +43,7 @@ else{
 }
 ok($user->delete($utils->connect()),"delete function");
 ok($user->result()->effected == 1,"One row Deleted");
-ok($user->retrieve($utils->connect()),"retrieve function");
+ok($user->retrieve($utils->connect()),"retrieve function 2");
 unless($user->result()->is_error) {
   ok(scalar(@{$user->result()->set}) == 1,"one row in DB");
 }else{
@@ -85,7 +87,8 @@ $user->add_condition({left  =>{ name  => 'username',
 ok($user->update( $utils->connect(),$container),"update hash container with an array");
 
 use Database::Accessor;
-my $other_user = Database::Accessor->new({view=>{name=>'user'},
+my $other_user = Database::Accessor->new({da_suppress_view_name=>1,
+                                          view=>{name=>'user'},
                                           elements=>[{name=>'username'}],
                                           conditions=>{left  =>{ name  => 'username',
                                 view  => 'user'},
@@ -98,7 +101,7 @@ $user->add_condition({left  =>{ name  => 'username',
                       right =>{ value => $other_user}
                     });
                     
-ok($user->retrieve($utils->connect()),"retrieve function");
+ok($user->retrieve($utils->connect()),"retrieve function ");
 
  # warn(Dumper($other_user->result()));
 #  warn(Dumper($user));

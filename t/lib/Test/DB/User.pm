@@ -17,7 +17,8 @@ has fields => ( isa => 'ArrayRef',
         
 sub da {
    my $self = shift;
-   my $da = Database::Accessor->new({view=>{name=>$self->table},
+   my $da = Database::Accessor->new({da_suppress_view_name=>1,
+                                     view=>{name=>$self->table},
                                     elements=>$self->fields,
                                     update_requires_condition=>0,
                                     delete_requires_condition=>0});

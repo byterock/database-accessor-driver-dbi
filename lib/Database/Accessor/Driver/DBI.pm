@@ -16,6 +16,7 @@ with(qw( Database::Accessor::Roles::Driver));
             is  => 'rw',
             isa => 'DBI::db',
      );
+     
  has is_exe_array => (
             is  => 'rw',
             isa => 'Bool',
@@ -381,7 +382,7 @@ sub _field_sql {
     $sql = $element->view
            ."."
            .$element->name
-      if ($use_view );
+      if ($use_view and !$self->da_suppress_view_name);
        
     return $sql;
        
