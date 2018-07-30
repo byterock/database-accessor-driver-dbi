@@ -9,7 +9,8 @@ BEGIN {
     require_ok('DBI')                || print "Bail out!";
 }
 my $in_hash = { da_compose_only=>1,
-                view => { name  => 'name' }};
+                view => { name  => 'name' },
+                 elements => [ { name => 'last_name', }, { name => 'first_name', }, ]};
 my $da      = Database::Accessor->new($in_hash);
 my $return  = {};
 my $dbh     = DBI->connect("dbi:ExampleP:", '', '');
