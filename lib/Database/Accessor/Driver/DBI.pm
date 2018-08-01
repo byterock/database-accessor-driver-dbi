@@ -64,10 +64,9 @@ sub execute {
         $sql .= $self->_join_clause();
         $sql .= $self->_where_clause();
         $sql .= $self->_group_by_clause();
-        
+        $sql .= $self->_order_by_clause();
     }
     
-    $sql .= $self->_order_by_clause();
     
     $result->query($sql);
     $self->da_warn('execute',"SQL=$sql")
@@ -159,10 +158,19 @@ sub _order_by_clause {
     my $self = shift;
     return ""
       unless ( $self->sort_count );
+    my @sorts;
+    
+    foreach my $sort (@{$self->sorts()} ){
+      my $sql = $self->_field_sql($sort,1);
+      $sql .= " " . uc( $sort->order );
+      push(@sorts,$sql);
+    }
+    
     return " "
       . join( " ",
         Database::Accessor::Driver::DBI::SQL::ORDER_BY,
-        $self->_fields_sql( $self->sorts() ) );
+        join(", ",@sorts)
+        );
 }
 
 sub _group_by_clause {

@@ -12,6 +12,8 @@ use Test::Utils;
 
 my $in_hash = {
     da_compose_only=>1,
+     update_requires_condition => 0,
+    delete_requires_condition => 0,
     view     => { name => 'people' },
     elements => [
         {
@@ -76,29 +78,83 @@ my $expression = {
     },
 };
 
- 
-my $tests = [{
-    key  =>'sorts',
-    sorts => [
-             {name => 'last_name',
-            #  view => 'people'
-            },
-            {
-              name => 'first_name',
-              #view => 'people'
-            },
-            ],
+ my $container = {
+    last_name  => 'Bloggings',
+    first_name => 'Bill',
+};
+
+my $tests = [
+{   key  =>'sorts',
+    sorts => [{name=>'last_name'},
+              {name=>'first_name'}
+              ],
     caption => "Simple Order by ",
-    sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
-},{
+    retrieve => {
+            sql => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
+    },
+    create =>{
+        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+        container=>$container,
+        params=> [ 'Bill', 'Bloggings' ],  
+    },
+    update =>{
+        sql=>"UPDATE people SET first_name = ?, last_name = ?",
+        container=>$container,
+        params=>['Bill', 'Bloggings'],  
+    },
+    delete =>{
+        sql=>"DELETE FROM people",
+    }
+}
+,{
     key  =>'sorts',
     sorts => [$expression],
     caption => "Complex Expression in Order by ",
-    sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
-    params  => ['0.5','1.5','0.5','2']
-}];
+    retrieve => {
+        sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
+        params  => ['0.5','1.5','0.5','2'],
+    },
+    create =>{
+        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+        container=>$container,
+        params=>['Bill', 'Bloggings'],  
+    },
+    update =>{
+        sql=>"UPDATE people SET first_name = ?, last_name = ?",
+        container=>$container,
+        params=>['Bill', 'Bloggings'],  
+    },
+    delete =>{
+        sql=>"DELETE FROM people",       
+    }
+},
+{   key  =>'sorts',
+    sorts => [{name=>'last_name',
+                order=>'DESC'},
+              {name=>'first_name',
+               order=>'ASC'}
+              ],
+    caption => "Simple Order by with ASC and DESC",
+    retrieve => {
+            sql => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name DESC, people.first_name ASC",
+    },
+    create =>{
+        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+        container=>$container,
+        params=> [ 'Bill', 'Bloggings' ],  
+    },
+    update =>{
+        sql=>"UPDATE people SET first_name = ?, last_name = ?",
+        container=>$container,
+        params=>['Bill', 'Bloggings'],  
+    },
+    delete =>{
+        sql=>"DELETE FROM people",
+    }
+}
+,];
 
-use Test::More  tests =>2;
+use Test::More  tests =>13;
 my $utils =  Test::Utils->new();
 $utils->sql_param_ok($in_hash,$tests);
 
