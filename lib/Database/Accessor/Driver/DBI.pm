@@ -162,7 +162,8 @@ sub _order_by_clause {
     
     foreach my $sort (@{$self->sorts()} ){
       my $sql = $self->_field_sql($sort,1);
-      $sql .= " " . uc( $sort->order );
+      $sql .= " " . Database::Accessor::Driver::DBI::SQL::DESC
+        if $sort->descending;
       push(@sorts,$sql);
     }
     
@@ -207,8 +208,8 @@ sub _where_clause {
       unless ( $self->condition_count );
     return " ".join(" ",
                 Database::Accessor::Driver::DBI::SQL::WHERE,
-                $self->_predicate_clause( Database::Accessor::Driver::DBI::SQL::WHERE,
-                $self->conditions ));
+                $self->_predicate_clause(Database::Accessor::Driver::DBI::SQL::WHERE,
+                                         $self->conditions ));
 }
 
 
@@ -269,8 +270,6 @@ sub _predicate_sql {
     my $self = shift;
     my ($predicate) = @_;
 
-
-
     my $clause =  "";
        $clause .= " "
               .$predicate->condition()
@@ -280,16 +279,47 @@ sub _predicate_sql {
     $clause .= Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
               ." "
       if ( $predicate->open_parentheses() );
-      
+    
+    
+    my $message = "Database::Accessor::Driver::DBI::Error->Operator ";
     if (Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS->{ $predicate->operator }){
-      
-      
-
-       $clause .= join(" ",$self->_field_sql($predicate->left,1),
+        $clause .= join(" ",$self->_field_sql($predicate->left,1),
                 $predicate->operator,
                 $self->_field_sql($predicate->right,1));
+    }
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NULL) {
+      
+       $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                          ,Database::Accessor::Driver::DBI::SQL::IS
+                          ,Database::Accessor::Driver::DBI::SQL::NULL
+                    );
+      
+    }
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NOT_NULL) {
+      
+       $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                          ,Database::Accessor::Driver::DBI::SQL::IS
+                          ,Database::Accessor::Driver::DBI::SQL::NOT
+                          ,Database::Accessor::Driver::DBI::SQL::NULL
+                    );
+      
+    }
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::BETWEEN) {
+      die("$message 'BETWEEN' right must be an Array Ref of two parameters!") 
+         if ( (ref( $predicate->right()) ne 'ARRAY') 
+                or scalar( @{ $predicate->right() } ) != 2 );
+      die("$message 'BETWEEN' left can not be an Array Ref!") 
+         if (  ref( $predicate->left()) eq 'ARRAY' );
+        
 
-     }
+      $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                         ,join(" ",Database::Accessor::Driver::DBI::SQL::BETWEEN
+                                  ,$self->_field_sql($predicate->right->[0],1)
+                                  ,Database::Accessor::Driver::DBI::SQL::AND
+                                  ,$self->_field_sql($predicate->right->[1],1)
+                              )
+                    );
+    }
 
    $clause .= " "
            .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS

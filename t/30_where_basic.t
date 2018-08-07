@@ -88,7 +88,7 @@ my $tests = [
                 operator => '=',
             },
             {
-                condition => 'AND',
+                condition => 'AnD',
                 left      => {
                     name => 'last_name',
                     view => 'people'

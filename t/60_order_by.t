@@ -8,25 +8,26 @@ use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
 
-
-
 my $in_hash = {
-    da_compose_only=>1,
-     update_requires_condition => 0,
+    da_compose_only           => 1,
+    update_requires_condition => 0,
     delete_requires_condition => 0,
-    view     => { name => 'people' },
-    elements => [
+    view                      => { name => 'people' },
+    elements                  => [
         {
             name => 'first_name',
-        #    view => 'people'
+
+            #    view => 'people'
         },
         {
             name => 'last_name',
-        #    view => 'people'
+
+            #    view => 'people'
         },
         {
             name => 'user_id',
-        #    view => 'people'
+
+            #    view => 'people'
         },
     ],
 };
@@ -45,9 +46,9 @@ my $expression = {
                 left     => {
                     open_parentheses  => 1,
                     close_parentheses => 1,
-                    expression => '+',
-                    left       => { name => 'salary' },
-                    right      => { value => '0.5' }
+                    expression        => '+',
+                    left              => { name => 'salary' },
+                    right             => { value => '0.5' }
                 },
             },
             right => { value => '1.5' },
@@ -67,9 +68,9 @@ my $expression = {
                 left     => {
                     open_parentheses  => 1,
                     close_parentheses => 1,
-                    expression => '+',
-                    left       => { name => 'salary' },
-                    right      => { value => '0.5' }
+                    expression        => '+',
+                    left              => { name => 'salary' },
+                    right             => { value => '0.5' }
                 },
             },
             right => { value => '2' },
@@ -78,83 +79,103 @@ my $expression = {
     },
 };
 
- my $container = {
+my $container = {
     last_name  => 'Bloggings',
     first_name => 'Bill',
 };
 
 my $tests = [
-{   key  =>'sorts',
-    sorts => [{name=>'last_name'},
-              {name=>'first_name'}
-              ],
-    caption => "Simple Order by ",
-    retrieve => {
-            sql => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
+    {
+        key      => 'sorts',
+        sorts    => [ { name => 'last_name' }, { name => 'first_name' } ],
+        caption  => "Simple Order by ",
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name, people.first_name",
+        },
+        create => {
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        update => {
+            sql       => "UPDATE people SET first_name = ?, last_name = ?",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        delete => { sql => "DELETE FROM people", }
     },
-    create =>{
-        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
-        container=>$container,
-        params=> [ 'Bill', 'Bloggings' ],  
+    {
+        key      => 'sorts',
+        sorts    => [$expression],
+        caption  => "Complex Expression in Order by ",
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
+            params => [ '0.5', '1.5', '0.5', '2' ],
+        },
+        create => {
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        update => {
+            sql       => "UPDATE people SET first_name = ?, last_name = ?",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        delete => { sql => "DELETE FROM people", }
     },
-    update =>{
-        sql=>"UPDATE people SET first_name = ?, last_name = ?",
-        container=>$container,
-        params=>['Bill', 'Bloggings'],  
+    {
+        key   => 'sorts',
+        sorts => [
+            {
+                name       => 'last_name',
+                descending => 1
+            },
+            {
+                name  => 'first_name',
+                order => 'ASC'
+            },
+            {
+                function   => 'left',
+                left       => { name => 'username' },
+                right      => { param => 11 },
+                descending => 1
+            },
+            {
+                expression => '*',
+                left       => { name => 'salary' },
+                right      => { param => .1 },
+                descending => 1
+            },
+            { value => -1,
+              descending => 1 }
+        ],
+        caption  => "Simple Order by with DESC ",
+        retrieve => {
+            params => [ '11', '0.1', '-1' ],
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name DESC, people.first_name, left(people.username,?) DESC, people.salary * ? DESC, ? DESC",
+        },
+        create => {
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        update => {
+            sql       => "UPDATE people SET first_name = ?, last_name = ?",
+            container => $container,
+            params    => [ 'Bill', 'Bloggings' ],
+        },
+        delete => { sql => "DELETE FROM people", }
     },
-    delete =>{
-        sql=>"DELETE FROM people",
-    }
-}
-,{
-    key  =>'sorts',
-    sorts => [$expression],
-    caption => "Complex Expression in Order by ",
-    retrieve => {
-        sql     => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
-        params  => ['0.5','1.5','0.5','2'],
-    },
-    create =>{
-        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
-        container=>$container,
-        params=>['Bill', 'Bloggings'],  
-    },
-    update =>{
-        sql=>"UPDATE people SET first_name = ?, last_name = ?",
-        container=>$container,
-        params=>['Bill', 'Bloggings'],  
-    },
-    delete =>{
-        sql=>"DELETE FROM people",       
-    }
-},
-{   key  =>'sorts',
-    sorts => [{name=>'last_name',
-                order=>'DESC'},
-              {name=>'first_name',
-               order=>'ASC'}
-              ],
-    caption => "Simple Order by with ASC and DESC",
-    retrieve => {
-            sql => "SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name DESC, people.first_name ASC",
-    },
-    create =>{
-        sql=>"INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
-        container=>$container,
-        params=> [ 'Bill', 'Bloggings' ],  
-    },
-    update =>{
-        sql=>"UPDATE people SET first_name = ?, last_name = ?",
-        container=>$container,
-        params=>['Bill', 'Bloggings'],  
-    },
-    delete =>{
-        sql=>"DELETE FROM people",
-    }
-}
-,];
+];
 
-use Test::More  tests =>13;
-my $utils =  Test::Utils->new();
-$utils->sql_param_ok($in_hash,$tests);
+use Test::More tests => 13;
+my $utils = Test::Utils->new();
+$utils->sql_param_ok( $in_hash, $tests );
 
