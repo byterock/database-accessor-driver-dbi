@@ -287,20 +287,11 @@ sub _predicate_sql {
                 $predicate->operator,
                 $self->_field_sql($predicate->right,1));
     }
-    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NULL) {
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NULL
+           or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NOT_NULL) {
       
-       $clause .= join(" ",$self->_field_sql($predicate->left,1)
-                          ,Database::Accessor::Driver::DBI::SQL::IS
-                          ,Database::Accessor::Driver::DBI::SQL::NULL
-                    );
-      
-    }
-    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NOT_NULL) {
-      
-       $clause .= join(" ",$self->_field_sql($predicate->left,1)
-                          ,Database::Accessor::Driver::DBI::SQL::IS
-                          ,Database::Accessor::Driver::DBI::SQL::NOT
-                          ,Database::Accessor::Driver::DBI::SQL::NULL
+      $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                         ,$predicate->operator 
                     );
       
     }
@@ -320,6 +311,31 @@ sub _predicate_sql {
                               )
                     );
     }
+    elsif (  $predicate->operator eq Database::Accessor::Driver::DBI::SQL::IN
+          || $predicate->operator eq Database::Accessor::Driver::DBI::SQL::NOT_IN )
+        {
+
+            die("$message '".$predicate->operator."' left can not be an Array Ref!") 
+                if (  ref( $predicate->left()) eq 'ARRAY' );
+            
+            if ( ref( $predicate->right()) eq "ARRAY") {
+              my $not_count = 0;
+              foreach my $param (@{ $predicate->right()}){
+                $not_count++
+                  if (ref($param) eq "Database::Accessor::Param"
+                     and ref($param->value) eq "Database::Accessor"); 
+              }
+              die("$message '".$predicate->operator."' Array Ref can not contain a Database::Accessor")
+                if ($not_count and scalar(@{ $predicate->right()}) != $not_count);
+            }
+                        
+             $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                                ,$predicate->operator()
+                                ,Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+                                .$self->_field_sql($predicate->right,1)
+                                .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
+                                
+        }
 
    $clause .= " "
            .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS
@@ -333,7 +349,7 @@ sub _predicate_sql {
 sub _field_sql {
   my $self = shift;
   my ($element,$use_view) = @_;
-   #warn("JPS ".Dumper($element).",use_view=$use_view");
+   # warn("JPS ".Dumper($element).",use_view=$use_view");
      # my ($package, $filename, $line) = caller;
      # warn(" line=$line")
        # if (!$use_view);
@@ -391,18 +407,13 @@ sub _field_sql {
                           
   }
   elsif (ref($element) eq "Database::Accessor::Param"){
-    
-    
 
     if (ref($element->value) eq "Database::Accessor"){
       my $da = $element->value;
-      $da->da_compose_only();
+      $da->da_compose_only(1);
       $da->retrieve($self->dbh());
-      my $sql = join(" ",
-                     Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
-                      $da->result->query(),
-                     Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS  );
-                      
+      my $sql = $da->result->query();
+      
       foreach my $sub_param (@{$da->result->params()}){
         $self->add_param(Database::Accessor::Param->new({value=>$sub_param}));
       }
@@ -413,6 +424,15 @@ sub _field_sql {
     }
     $self->add_param($element);
     return Database::Accessor::Driver::DBI::SQL::PARAM;
+  }
+  elsif (ref($element) eq "ARRAY"){
+    
+    my @clauses  = ();
+    foreach my $item (@{$element}){
+       push(@clauses,$self->_field_sql($item,$use_view));
+    }
+    return join(",",@clauses);
+    
   }
   else {
     my $sql = $element->name;

@@ -319,7 +319,7 @@ my $tests = [
           { message => 'right must be an Array Ref of two parameters' },
     },
   {
-        caption    => 'between left must no be an array-ref',
+        caption    => 'between left must not be an array-ref',
         type       => 'exception',
         key        => 'conditions',
         conditions => [
@@ -396,8 +396,110 @@ my $tests = [
             sql    => "DELETE FROM people WHERE people.salary IS NOT NULL",           
         },
     },
+     {
+        caption    => 'In Operator Params',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {
+                    name => 'salary',
+                    view => 'people'
+                },
+                operator => 'In',
+                right => [{value=>'10000'},
+                         {value=>'10010'},
+                         {value=>'10020'},]
+            },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.salary IN (?,?,?)",
+            params => ['10000','10010','10020']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.salary IN (?,?,?)",
+ params => [ 'Bill', 'Bloggings', '10000','10010','10020' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE people.salary IN (?,?,?)",
+            params => ['10000','10010','10020']
+        },
+    },
+       {
+        caption    => 'In Operator with Data::Accessor',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {
+                    name => 'id',
+                    view => 'people'
+                },
+                operator => 'IN',
+                right =>{value=>Test::Utils::in_da_sql()}
+            },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.id IN (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.id IN (SELECT address.user_id FROM address WHERE address.country = ?)",
+ params => [ 'Bill', 'Bloggings','CA' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE people.id IN (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+    },
+      {
+        caption    => 'in left must not be an array-ref',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => [ { name => 'cost' }, { value => '10000' }, ],
+        right    => [ { name => 'cost' }, { value => '10000' }, ],
+        operator => 'IN',
+    },
+        ],
+        retrieve =>
+          { message => 'left can not be an Array Ref' },
+    },
+          {
+        caption    => 'in right must not be and array ref with a DA and params',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => { name => 'cost' },
+        right    => [{ name => 'cost' } ,{ name => 'price' } ,{value=>Test::Utils::in_da_sql()}],
+        operator => 'IN',
+    },
+        ],
+        retrieve =>
+          { message => 'Array Ref can not contain a Database::Accessor' },
+    },
 ];
 
 my $utils = Test::Utils->new();
-
+#my $test = pop(@{$tests});
 $utils->sql_param_ok( $in_hash, $tests );
