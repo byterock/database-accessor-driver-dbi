@@ -492,11 +492,272 @@ my $tests = [
           {
         left     => { name => 'cost' },
         right    => [{ name => 'cost' } ,{ name => 'price' } ,{value=>Test::Utils::in_da_sql()}],
-        operator => 'IN',
-    },
+        operator => 'IN',},
         ],
         retrieve =>
           { message => 'Array Ref can not contain a Database::Accessor' },
+    },
+     {
+        caption    => 'Like operator with regex',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {
+                    name => 'last_name',
+                    view => 'people'
+                },
+                operator => 'Like',
+                right =>{value=>'Blog%'}
+            },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.last_name LIKE ?",
+            params => ['Blog%']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.last_name LIKE ?",
+ params => [ 'Bill', 'Bloggings','Blog%' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE people.last_name LIKE ?",
+            params => ['Blog%']
+        },
+    },
+     {
+        caption    => 'Like operator with regex',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {
+                    name => 'last_name',
+                    view => 'people'
+                },
+                operator => 'NOT Like',
+                right =>{value=>'Blog%'}
+            },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.last_name NOT LIKE ?",
+            params => ['Blog%']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.last_name NOT LIKE ?",
+ params => [ 'Bill', 'Bloggings','Blog%' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE people.last_name NOT LIKE ?",
+            params => ['Blog%']
+        },
+    },
+     {
+        caption    => 'Like left must not be an array-ref',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => [ { name => 'cost' }, { value => '10000' }, ],
+        right    => {value=>'%ogs'},
+        operator => 'Like',
+        }],
+        retrieve =>
+          { message => 'left can not be an Array Ref' },
+    },
+     {
+        caption    => 'Like right must not be an array-ref',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => { name => 'cost' },
+        right    => [ { name => 'cost' }, { value => '10000' }, ],
+        operator => 'Like',
+        }],
+        retrieve =>
+          { message => 'right can not be an Array Ref' },
+    },
+    {
+        caption    => 'Exists Operator with Data::Accessor',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {value=>Test::Utils::in_da_sql()},
+                operator => 'Exists',
+              },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+ params => [ 'Bill', 'Bloggings','CA' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+    },
+     {
+        caption    => 'Not Exists Operator with Data::Accessor',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {value=>Test::Utils::in_da_sql()},
+                operator => 'NOT Exists',
+              },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE NOT EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE NOT EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+ params => [ 'Bill', 'Bloggings','CA' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE NOT EXISTS (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+    },
+     {
+        caption    => 'Exists left must be a Param with a value of DA-ref 1',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => { name => 'cost' },
+        operator => 'EXISTS',
+        }],
+        retrieve =>
+          { message => 'left must be a Database::Accessor::Param with' },
+    },
+    {
+        caption    => 'Exists left must be a Param with a value of DA-ref 2',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => { value=> 'cost' },
+        operator => 'EXISTS',
+        }],
+        retrieve =>
+          { message => 'left must be a Database::Accessor::Param with' },
+    },
+    {
+        caption    => 'Any Operator with Data::Accessor',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {value=>Test::Utils::in_da_sql()},
+                operator => 'aLl',
+              },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE ALL (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE ALL (SELECT address.user_id FROM address WHERE address.country = ?)",
+ params => [ 'Bill', 'Bloggings','CA' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE ALL (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+    },
+     {
+        caption    => 'All left must be a Param with a value of DA-ref 2',
+        type       => 'exception',
+        key        => 'conditions',
+        conditions => [
+          {
+        left     => { value=> 'cost' },
+        operator => 'ALL',
+        }],
+        retrieve =>
+          { message => "'ALL' left must be a" },
+    },
+    {
+        caption    => 'ANY Operator with Data::Accessor',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {value=>Test::Utils::in_da_sql()},
+                operator => 'ANY',
+              },
+        ],
+        create => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params => $params
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE ANY (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE ANY (SELECT address.user_id FROM address WHERE address.country = ?)",
+ params => [ 'Bill', 'Bloggings','CA' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE ANY (SELECT address.user_id FROM address WHERE address.country = ?)",
+            params => ['CA']
+        },
     },
 ];
 

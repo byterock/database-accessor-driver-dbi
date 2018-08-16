@@ -23,6 +23,17 @@ with(qw( Database::Accessor::Roles::Driver));
             default     => 0,
      );
 
+  has _aggregate_count => (
+    traits  => ['Counter'],
+    is      => 'rw',
+    default => 0,
+    isa     => 'Int',
+        handles => {
+            _inc_aggregate => 'inc',
+            _dec_aggregate => 'dec',
+            _reset_aggregate => 'reset'
+        }
+  );
 # DADNote you will get an empty result class that you will have to fill .
 # DADNote trap all errors and return via that class 
 
@@ -295,6 +306,34 @@ sub _predicate_sql {
                     );
       
     }
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::EXISTS
+           or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::NOT_EXISTS
+           or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::ALL
+           or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::ANY) {
+
+     die "$message '".$predicate->operator."' left must be a Database::Accessor::Param with the value pointing to a Database::Accessor. Not a ".ref($predicate->left)."!"
+       unless((ref($predicate->left) eq 'Database::Accessor::Param') and (ref($predicate->left->value) eq "Database::Accessor"));
+       
+      $clause .= join(" ",$predicate->operator 
+                         ,Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
+                         .$self->_field_sql($predicate->left,1)
+                         .Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS                              
+                    );
+    }
+    elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::LIKE
+           or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::NOT_LIKE) {
+      
+      die("$message '".$predicate->operator."' left can not be an Array Ref!") 
+         if ( ref( $predicate->left()) eq 'ARRAY' );
+      
+      die("$message '".$predicate->operator."' right can not be an Array Ref!") 
+         if ( ref( $predicate->right()) eq 'ARRAY' );
+         
+      $clause .= join(" ",$self->_field_sql($predicate->left,1)
+                         ,$predicate->operator
+                         ,$self->_field_sql($predicate->right,1)
+                    );
+    }
     elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::BETWEEN) {
       die("$message 'BETWEEN' right must be an Array Ref of two parameters!") 
          if ( (ref( $predicate->right()) ne 'ARRAY') 
@@ -379,6 +418,11 @@ sub _field_sql {
    
   }
   elsif (ref($element) eq "Database::Accessor::Function"){
+      $self->_inc_aggregate()
+        if (exists(Database::Accessor::Driver::DBI::SQL::AGGREGATES->{$element->function}));
+      die("Database::Accessor::Driver::DBI::Error->Element! An Element can have only one Aggregate function! ".$element->function." is not valid") 
+         if ( $self->_aggregate_count() >=2 );
+        
       my $left_sql = $self->_field_sql($element->left(),$use_view);
       my @right_sql;
       
@@ -480,12 +524,11 @@ sub _delete {
 }
 
 sub _fields_sql {
-  
   my $self = shift;
   my ($elements) = @_;
   my @fields = ();   
   foreach my $field ( @{$elements} ) {
-    
+    $self->_reset_aggregate();
     my $sql = $self->_field_sql($field,1);
     if ($field->alias()) {
       my $alias = $field->alias();

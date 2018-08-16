@@ -1,5 +1,5 @@
 #!perl
-use Test::More tests => 85;
+use Test::More tests => 88;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
@@ -129,7 +129,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, left(people.username,?) FROM people",
+"SELECT people.first_name, people.last_name, LEFT(people.username,?) FROM people",
             params => ['11']
         },
         update => {
@@ -160,7 +160,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, substr(people.username,?,?) FROM people",
+"SELECT people.first_name, people.last_name, SUBSTR(people.username,?,?) FROM people",
             params => [ '3', '5' ]
         },
         update => {
@@ -198,7 +198,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, substr(people.username,?,left(people.address,?)) FROM people",
+"SELECT people.first_name, people.last_name, SUBSTR(people.username,?,LEFT(people.address,?)) FROM people",
             params => [ '3', '4' ]
         },
         update => {
@@ -298,7 +298,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, abs(people.bonus * ?) FROM people",
+"SELECT people.first_name, people.last_name, ABS(people.bonus * ?) FROM people",
             params => [-0.05]
         },
         update => {
@@ -332,7 +332,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.bonus * abs(?) FROM people",
+"SELECT people.first_name, people.last_name, people.bonus * ABS(?) FROM people",
             params => [-0.1]
         },
         update => {
@@ -384,7 +384,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-'SELECT people.first_name first, people.last_name last, people.bonus * abs(?) Bonus, abs(people.bonus * ?) "Secondary Bonus" FROM people',
+'SELECT people.first_name first, people.last_name last, people.bonus * ABS(?) Bonus, ABS(people.bonus * ?) "Secondary Bonus" FROM people',
             params => [ -0.1, -0.05 ]
         },
         update => {
@@ -438,7 +438,7 @@ my $tests = [
 
         retrieve => {
             sql =>
-'SELECT people.first_name first, people.last_name last, people.bonus * abs(?) Bonus, abs(people.bonus * ?) "Secondary Bonus" FROM people',
+'SELECT people.first_name first, people.last_name last, people.bonus * ABS(?) Bonus, ABS(people.bonus * ?) "Secondary Bonus" FROM people',
             params => [ -0.1, -0.05 ]
         },
         update => {
@@ -514,12 +514,75 @@ my $tests = [
         ],
         retrieve => {
             sql =>
-'SELECT ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) "This is Hell" FROM people',
+'SELECT ((ABS(people.salary + ?) * ?) * people.overtime) + ((ABS(people.salary + ?) * ?) * people.doubletime) "This is Hell" FROM people',
             params => [ '0.5', '1.5', '0.5', '2' ]
         },
     },
+    {
+        caption  => 'Can not have a an aggregate in an aggregate',
+        type     => 'exception',
+        key      => 'elements',
+        elements => [
+            {
+                function => 'COUNT',
+                left     => {
+                    function => 'avg',
+                    left     => { name => 'bonus' },
+                },
+            }
+        ],
+        retrieve =>
+          { message => 'An Element can have only one Aggregate function!' },
+    },
+    {
+        caption  => '2 Fields and two Aggregate',
+        key      => 'elements',
+        elements => [
+            {
+                name  => 'first_name',
+                alias => 'first'
+            },
+            {
+                name  => 'last_name',
+                alias => 'last'
+            },
+            {
+                function => 'count',
+                left     => { name => 'first_name' },
+            },
+            {
+                function => 'count',
+                left     => { name => 'last_name' },
+            }
+        ],
+        retrieve => {
+            sql =>
+'SELECT people.first_name first, people.last_name last, COUNT(people.first_name), COUNT(people.last_name) FROM people',
+        },
+    },
+    {
+        caption  => 'Can not have a an aggregate in an aggregate complex',
+        type     => 'exception',
+        key      => 'elements',
+        elements => [
+            {
+                function => 'COUNT',
+                left     => {
+                    function => 'abs',
+                    left     => {
+                        function => 'avg',
+                        left     => { name => 'bonus' }
+                    },
+                    
+                },
+            }
+        ],
+        retrieve =>
+          { message => 'An Element can have only one Aggregate function!' },
+    },
 ];
 
+# my $test = pop(@{$tests});
 
 $utils->sql_param_ok( $in_hash, $tests );
 
