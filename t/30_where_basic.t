@@ -145,18 +145,18 @@ my $tests = [
         ],
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE substr(people.username,?,?) = ?",
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE SUBSTR(people.username,?,?) = ?",
             params => [ '3', '5', 'tes' ]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE substr(people.username,?,?) = ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE SUBSTR(people.username,?,?) = ?",
             params => [ 'Bill', 'Bloggings', '3', '5', 'tes' ]
         },
         delete => {
-            sql => "DELETE FROM people WHERE substr(people.username,?,?) = ?",
+            sql => "DELETE FROM people WHERE SUBSTR(people.username,?,?) = ?",
             params => [ '3', '5', 'tes' ]
         },
     },
@@ -194,19 +194,19 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE substr(people.username,?,?) = ? AND left(people.first_name,?) = ?",
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE SUBSTR(people.username,?,?) = ? AND LEFT(people.first_name,?) = ?",
             params => [ '3', '5', 'tes', '4', 'test' ]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE substr(people.username,?,?) = ? AND left(people.first_name,?) = ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE SUBSTR(people.username,?,?) = ? AND LEFT(people.first_name,?) = ?",
             params => [ 'Bill', 'Bloggings', '3', '5', 'tes', '4', 'test' ]
         },
         delete => {
             sql =>
-"DELETE FROM people WHERE substr(people.username,?,?) = ? AND left(people.first_name,?) = ?",
+"DELETE FROM people WHERE SUBSTR(people.username,?,?) = ? AND LEFT(people.first_name,?) = ?",
             params => [ '3', '5', 'tes', '4', 'test' ]
         },
     },
@@ -391,19 +391,19 @@ my $tests = [
 
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?",
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?",
             params => [ 'test1', '0.15', '1500', '1', 'b' ]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?",
             params => [ 'Bill', 'Bloggings', 'test1', '0.15', '1500', '1', 'b' ]
         },
         delete => {
             sql =>
-"DELETE FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?",
+"DELETE FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?",
             params => [ 'test1', '0.15', '1500', '1', 'b' ]
         },
     },
@@ -468,19 +468,19 @@ my $tests = [
 
         retrieve => {
             sql =>
-'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?',
+'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?',
             params => [ 'test1', '0.15', '1500', '1', 'b' ]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?",
             params => [ 'Bill', 'Bloggings', 'test1', '0.15', '1500', '1', 'b' ]
         },
         delete => {
             sql =>
-"DELETE FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND left(people.first_name,?) != ?",
+"DELETE FROM people WHERE people.first_name != ? AND people.bonus * ? <= ? AND LEFT(people.first_name,?) != ?",
             params => [ 'test1', '0.15', '1500', '1', 'b' ]
         },
     },
@@ -561,19 +561,19 @@ my $tests = [
 
         retrieve => {
             sql =>
-'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) != ?',
+'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE ((ABS(people.salary + ?) * ?) * people.overtime) + ((ABS(people.salary + ?) * ?) * people.doubletime) != ?',
             params => [ '0.5', '1.5', '0.5', '2','42' ]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) != ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE ((ABS(people.salary + ?) * ?) * people.overtime) + ((ABS(people.salary + ?) * ?) * people.doubletime) != ?",
             params => [ 'Bill', 'Bloggings', '0.5', '1.5', '0.5', '2','42' ]
         },
         delete => {
             sql =>
-"DELETE FROM people WHERE ((abs(people.salary + ?) * ?) * people.overtime) + ((abs(people.salary + ?) * ?) * people.doubletime) != ?",
+"DELETE FROM people WHERE ((ABS(people.salary + ?) * ?) * people.overtime) + ((ABS(people.salary + ?) * ?) * people.doubletime) != ?",
             params => [ '0.5', '1.5', '0.5', '2','42' ]
         },
     },

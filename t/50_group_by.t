@@ -91,7 +91,7 @@ my $tests = [
         retrieve => {
             params => ['11'],
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, left(people.last_name,?), people.user_id",
+"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, LEFT(people.last_name,?), people.user_id",
         },
         create  => {
             container => $container,
@@ -181,7 +181,7 @@ my $tests = [
         retrieve => {
             params => ['11','Bloggings'],
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, left(people.last_name,?), people.user_id HAVING people.last_name = ?",
+"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, LEFT(people.last_name,?), people.user_id HAVING people.last_name = ?",
         },
         create  => {
             container => $container,
@@ -234,7 +234,7 @@ my $tests = [
         retrieve => {
             params => ['11','Bloggings','Biggles'],
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, left(people.last_name,?), people.user_id HAVING people.last_name = ? OR people.last_name = ?",
+"SELECT people.first_name, people.last_name, people.user_id FROM people GROUP BY people.first_name, LEFT(people.last_name,?), people.user_id HAVING people.last_name = ? OR people.last_name = ?",
         },
         create  => {
             container => $container,

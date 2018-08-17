@@ -265,19 +265,19 @@ my $tests = [
         },
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.salary BETWEEN people.cost AND abs(people.bonus * ?)",
+"SELECT people.first_name, people.last_name, people.user_id FROM people WHERE people.salary BETWEEN people.cost AND ABS(people.bonus * ?)",
             params => [-0.05]
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE people.salary BETWEEN people.cost AND abs(people.bonus * ?)",
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.salary BETWEEN people.cost AND ABS(people.bonus * ?)",
             params => [ 'Bill', 'Bloggings', -0.05 ]
         },
         delete => {
             sql =>
-"DELETE FROM people WHERE people.salary BETWEEN people.cost AND abs(people.bonus * ?)",
+"DELETE FROM people WHERE people.salary BETWEEN people.cost AND ABS(people.bonus * ?)",
             params => [-0.05]
         },
     },

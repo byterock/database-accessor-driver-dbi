@@ -112,7 +112,7 @@ my $tests = [
         caption  => "Complex Expression in Order by ",
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((abs((people.salary + ?)) * ?) * people.overtime) + ((abs((people.salary + ?)) * ?) * people.doubletime)",
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY ((ABS((people.salary + ?)) * ?) * people.overtime) + ((ABS((people.salary + ?)) * ?) * people.doubletime)",
             params => [ '0.5', '1.5', '0.5', '2' ],
         },
         create => {
@@ -158,7 +158,7 @@ my $tests = [
         retrieve => {
             params => [ '11', '0.1', '-1' ],
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name DESC, people.first_name, left(people.username,?) DESC, people.salary * ? DESC, ? DESC",
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY people.last_name DESC, people.first_name, LEFT(people.username,?) DESC, people.salary * ? DESC, ? DESC",
         },
         create => {
             sql =>

@@ -246,7 +246,7 @@ my $tests = [
             },
         retrieve => {
             sql =>
-"SELECT people.first_name, people.last_name, people.id, address.street FROM people LEFT JOIN address ON people.id != left(address.city_id,?) WHERE people.first_name = ?",
+"SELECT people.first_name, people.last_name, people.id, address.street FROM people LEFT JOIN address ON people.id != LEFT(address.city_id,?) WHERE people.first_name = ?",
             params => ['11','test1']
         },
         create  => {
@@ -258,11 +258,11 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id != left(address.city_id,?) WHERE people.first_name = ?",
+"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id != LEFT(address.city_id,?) WHERE people.first_name = ?",
             params => [ 'Bill', 'Bloggings','11','test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address ON people.id != left(address.city_id,?) WHERE people.first_name = ?",
+            sql    => "DELETE FROM people LEFT JOIN address ON people.id != LEFT(address.city_id,?) WHERE people.first_name = ?",
             params => ['11','test1']
         },
     },
