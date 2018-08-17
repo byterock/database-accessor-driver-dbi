@@ -7,7 +7,7 @@ use Data::Dumper;
 use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
-use Test::More tests => 80;
+use Test::More tests => 130;
 use Test::Fatal;
 
 my $in_hash = {

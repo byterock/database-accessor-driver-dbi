@@ -175,7 +175,7 @@ my $tests = [
     },
 ];
 
-use Test::More tests => 13;
+use Test::More tests => 20;
 my $utils = Test::Utils->new();
 $utils->sql_param_ok( $in_hash, $tests );
 
