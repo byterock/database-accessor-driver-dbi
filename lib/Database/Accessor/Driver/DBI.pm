@@ -392,7 +392,46 @@ sub _field_sql {
      # my ($package, $filename, $line) = caller;
      # warn(" line=$line")
        # if (!$use_view);
-  if (ref($element) eq "Database::Accessor::Expression"){
+  if (ref($element) eq "Database::Accessor::Case"){
+    my @whens  = ();
+    my $last   = pop(@{$element->whens()});
+    warn(Dumper($last));
+    foreach my $when (@{$element->whens()}){
+        if (ref($when) eq "Database::Accessor::Case::When"){
+           push(@whens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
+                               ,$self->_field_sql($when,0)
+                               ,Database::Accessor::Driver::DBI::SQL::THEN
+                               ,$self->_field_sql($when->statement(),0)));
+        }
+        else {
+          my $condition_sql;
+          my $statement;
+          foreach my $condition (@{$when}){
+            $condition_sql .= $condition->condition
+              if ($condition->condition);
+            $condition_sql .= $self->_field_sql($condition,0);
+            $statement = $condition->statement()
+               if ( $condition->statement());
+          }           push(@whens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
+                               ,$condition_sql
+                               ,Database::Accessor::Driver::DBI::SQL::THEN
+                               ,$self->_field_sql($statement,0)));
+                  }
+    }
+    return join(" ",Database::Accessor::Driver::DBI::SQL::CASE
+                   ,@whens
+                   ,Database::Accessor::Driver::DBI::SQL::ELSE
+                   ,$self->_field_sql($last->statement(),0)
+                   ,Database::Accessor::Driver::DBI::SQL::END_CASE);
+  }
+  elsif (ref($element) eq "Database::Accessor::Case::When"){
+    
+    return join(" ",$self->_field_sql($element->left(),$use_view)
+                   ,$element->operator
+                   ,$self->_field_sql($element->right(),$use_view));
+
+  } 
+  elsif (ref($element) eq "Database::Accessor::Expression"){
       my $left_sql;
       $left_sql = Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
          if ( $element->open_parentheses() );

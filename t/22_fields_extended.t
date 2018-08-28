@@ -10,44 +10,39 @@ use Test::Deep;
 use Test::Utils;
 my $utils   = Test::Utils->new();
 
-# SELECT ProductName,
-       # CASE WHEN Price < 10 THEN 'under 10$'
-            # WHEN Price >=10 AND Price <= 30 THEN '10~30'
-            # WHEN Price >30 and Price <= 100 THEN '30~100'
-            # ELSE 'Over 100' END AS price_group
-  # FROM Products
+
   
 my $in_hash = {
     da_compose_only           => 1,
     update_requires_condition => 0,
     delete_requires_condition => 0,
-    view                      => { name => 'ProductName' },
-    elements =>[{case=>[{ left      => { name => 'Price', },
+    view                      => { name => 'Products' },
+    elements =>[{whens=>[{ left      => { name => 'Price', },
                           right     => { value => '10' },
                           operator  => '<',
-                          expression=>{value=>'under 10$'}},
-                        [{left      => { 'Price'},
+                          statement=>{value=>'under 10$'}},
+                        [{left      => { name =>'Price'},
                           right     => { value => '10' },
                           operator   => '>=',
                          },
                          { condition => 'and',
-                           left      => {name=>'Price'}
+                           left      => {name=>'Price'},
                            right     => { value => '30' },
                            operator  => '<=',
-                           expression=>{value=>'10~30$'}}
+                           statement=>{value=>'10~30$'}}
                         ],
-                        [{left      => { 'Price'},
+                        [{left      => {name => 'Price'},
                           right     => { value => '30' },
                           operator   => '>',
                          },
                          { condition => 'and',
-                           left      => {name=>'Price'}
+                           left      => {name=>'Price'},
                            right     => { value => '100' },
                            operator  => '<=',
-                           expression=>{value=>'30~100$'}}
+                           statement=>{value=>'30~100$'}}
                         ],
-                        { expression=>{value=>'Over 100$'}},
-                        ]
+                        { statement=>{value=>'Over 100$'}},
+                        ],
                  alias=>'price_group'}]};
                         
 my $container = {
@@ -56,7 +51,13 @@ my $container = {
 };
 
 my $tests = [
-   
+ {
+        caption => 'Retrieve with case statement in elements',
+        retrieve => {
+            sql =>"SELECT CASE WHEN Price < ? THEN ? WHEN Price >=? AND Price <= ? THEN ? WHEN Price >? and Price <= ? THEN ? ELSE ? END AS price_group FROM Products",
+            params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$']
+        },
+  }
 ];
 
 # my $test = pop(@{$tests});

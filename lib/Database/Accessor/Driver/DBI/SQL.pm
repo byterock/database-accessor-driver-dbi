@@ -39,6 +39,12 @@ use constant GROUPBY           =>'GROUP BY';
 use constant ORDERBY           =>'ORDER BY';
 use constant WHERE             =>'WHERE';
 use constant HAVING            =>'HAVING';
+use constant CASE              =>'CASE';
+use constant WHEN              =>'WHEN';
+use constant THEN              =>'THEN';
+use constant ELSE              =>'ELSE';
+use constant END_CASE          =>'END';
+
 use constant OPEN_PARENS       =>'(';
 use constant OPEN_PARENTHESES  =>Database::Accessor::Driver::DBI::SQL::OPEN_PARENS;
 use constant CLOSE_PARENS      =>')';
