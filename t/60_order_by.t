@@ -205,7 +205,7 @@ my $tests = [
         retrieve => {
             params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$'],
             sql =>
-"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END",
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY CASE WHEN people.Price < ? THEN ? WHEN people.Price >= ? AND people.Price <= ? THEN ? WHEN people.Price > ? AND people.Price <= ? THEN ? ELSE ? END",
         },       
     },
 ];

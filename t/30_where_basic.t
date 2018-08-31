@@ -7,7 +7,7 @@ use Data::Dumper;
 use Database::Accessor;
 use Test::Deep;
 use Test::Utils;
-use Test::More tests => 80;
+use Test::More tests => 86;
 
 my $in_hash = {
     da_compose_only => 1,
@@ -615,18 +615,18 @@ my $tests = [
         ],
         retrieve => {
             sql =>
-'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?',
+'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE CASE WHEN people.Price < ? THEN ? WHEN people.Price >= ? AND people.Price <= ? THEN ? WHEN people.Price > ? AND people.Price <= ? THEN ? ELSE ? END = ?',
             params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1']
         },
 
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE CASE WHEN people.Price < ? THEN ? WHEN people.Price >= ? AND people.Price <= ? THEN ? WHEN people.Price > ? AND people.Price <= ? THEN ? ELSE ? END = ?",
             params => [ 'Bill', 'Bloggings', 10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?",
+            sql    => "DELETE FROM people WHERE CASE WHEN people.Price < ? THEN ? WHEN people.Price >= ? AND people.Price <= ? THEN ? WHEN people.Price > ? AND people.Price <= ? THEN ? ELSE ? END = ?",
             params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1']
         },
     },
