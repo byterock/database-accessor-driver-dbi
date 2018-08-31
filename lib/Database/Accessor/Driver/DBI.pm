@@ -280,7 +280,7 @@ sub _predicate_clause {
 sub _predicate_sql {
     my $self = shift;
     my ($predicate) = @_;
-
+# warn("_predicate_sql".Dumper($predicate));
     my $clause =  "";
        $clause .= " "
               .$predicate->condition()
@@ -288,7 +288,7 @@ sub _predicate_sql {
      if ($predicate->condition());
 
     $clause .= Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
-              ." "
+            ." "
       if ( $predicate->open_parentheses() );
     
     
@@ -394,10 +394,10 @@ sub _field_sql {
        # if (!$use_view);
   if (ref($element) eq "Database::Accessor::Case"){
     my @whens  = ();
-    my $last   = pop(@{$element->whens()});
-    warn(Dumper($last));
-    foreach my $when (@{$element->whens()}){
-        if (ref($when) eq "Database::Accessor::Case::When"){
+    my $last   = $element->get_when(-1);
+    for (my $index=0; $index<= $element->when_count()-2; $index++) {
+       my $when = $element->get_when($index);
+              if (ref($when) eq "Database::Accessor::Case::When"){
            push(@whens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
                                ,$self->_field_sql($when,0)
                                ,Database::Accessor::Driver::DBI::SQL::THEN
@@ -407,8 +407,6 @@ sub _field_sql {
           my $condition_sql;
           my $statement;
           foreach my $condition (@{$when}){
-            $condition_sql .= $condition->condition
-              if ($condition->condition);
             $condition_sql .= $self->_field_sql($condition,0);
             $statement = $condition->statement()
                if ( $condition->statement());
@@ -426,9 +424,7 @@ sub _field_sql {
   }
   elsif (ref($element) eq "Database::Accessor::Case::When"){
     
-    return join(" ",$self->_field_sql($element->left(),$use_view)
-                   ,$element->operator
-                   ,$self->_field_sql($element->right(),$use_view));
+        return $self->_predicate_sql($element);
 
   } 
   elsif (ref($element) eq "Database::Accessor::Expression"){

@@ -577,6 +577,59 @@ my $tests = [
             params => [ '0.5', '1.5', '0.5', '2','42' ]
         },
     },
+     {
+        caption => 'One Case left field conditions',
+        key        => 'conditions',
+        conditions => [
+            {
+                left => {whens=>[{ left      => { name => 'Price', },
+                          right     => { value => '10' },
+                          operator  => '<',
+                          statement=>{value=>'under 10$'}},
+                        [{left      => { name =>'Price'},
+                          right     => { value => '10' },
+                          operator   => '>=',
+                         },
+                         { condition => 'and',
+                           left      => {name=>'Price'},
+                           right     => { value => '30' },
+                           operator  => '<=',
+                           statement=>{value=>'10~30$'}}
+                        ],
+                        [{left      => {name => 'Price'},
+                          right     => { value => '30' },
+                          operator   => '>',
+                         },
+                         { condition => 'and',
+                           left      => {name=>'Price'},
+                           right     => { value => '100' },
+                           operator  => '<=',
+                           statement=>{value=>'30~100$'}}
+                        ],
+                        { statement=>{value=>'Over 100$'}},
+                        ],},
+                right     => { value => 'test1' },
+                operator  => '=',
+                condition => 'AND'
+            },
+        ],
+        retrieve => {
+            sql =>
+'SELECT people.first_name First, people.last_name Last, people.user_id "User ID" FROM people WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?',
+            params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1']
+        },
+
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ? WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?",
+            params => [ 'Bill', 'Bloggings', 10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people WHERE CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END = ?",
+            params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$','test1']
+        },
+    },
 ];
 
 my $utils = Test::Utils->new();

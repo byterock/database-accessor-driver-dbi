@@ -173,9 +173,44 @@ my $tests = [
         },
         delete => { sql => "DELETE FROM people", }
     },
+     {
+        key   => 'sorts',
+        sorts => [{whens=>[{ left      => { name => 'Price', },
+                          right     => { value => '10' },
+                          operator  => '<',
+                          statement=>{value=>'under 10$'}},
+                        [{left      => { name =>'Price'},
+                          right     => { value => '10' },
+                          operator   => '>=',
+                         },
+                         { condition => 'and',
+                           left      => {name=>'Price'},
+                           right     => { value => '30' },
+                           operator  => '<=',
+                           statement=>{value=>'10~30$'}}
+                        ],
+                        [{left      => {name => 'Price'},
+                          right     => { value => '30' },
+                          operator   => '>',
+                         },
+                         { condition => 'and',
+                           left      => {name=>'Price'},
+                           right     => { value => '100' },
+                           operator  => '<=',
+                           statement=>{value=>'30~100$'}}
+                        ],
+                        { statement=>{value=>'Over 100$'}},
+                        ],}],
+        caption  => "Order by with Case ",
+        retrieve => {
+            params => [10,'under 10$',10,30,'10~30$',30,100,'30~100$','Over 100$'],
+            sql =>
+"SELECT people.first_name, people.last_name, people.user_id FROM people ORDER BY CASE WHEN Price < ? THEN ? WHEN Price >= ? AND Price <= ? THEN ? WHEN Price > ? AND Price <= ? THEN ? ELSE ? END",
+        },       
+    },
 ];
 
-use Test::More tests => 20;
+use Test::More tests => 22;
 my $utils = Test::Utils->new();
 $utils->sql_param_ok( $in_hash, $tests );
 

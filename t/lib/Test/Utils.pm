@@ -86,6 +86,7 @@ sub sql_param_ok {
             }
         }
         my $da = Database::Accessor->new($in_hash);
+        # warn("da=".Dumper($da));
         foreach my $action ( (qw(create retrieve update delete)) ) {
             next
               unless ( exists( $test->{$action} ) );
