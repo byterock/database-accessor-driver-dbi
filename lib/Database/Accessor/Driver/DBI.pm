@@ -280,7 +280,7 @@ sub _predicate_clause {
 sub _predicate_sql {
     my $self = shift;
     my ($predicate) = @_;
-# warn("_predicate_sql".Dumper($predicate));
+ # warn("_predicate_sql".Dumper($predicate));
     my $clause =  "";
        $clause .= " "
               .$predicate->condition()
@@ -392,39 +392,43 @@ sub _field_sql {
      # my ($package, $filename, $line) = caller;
      # warn(" line=$line")
        # if (!$use_view);
-  if (ref($element) eq "Database::Accessor::Case"){
-    my @whens  = ();
-    my $last   = $element->get_when(-1);
-    for (my $index=0; $index<= $element->when_count()-2; $index++) {
-       my $when = $element->get_when($index);
-              if (ref($when) eq "Database::Accessor::Case::When"){
-           push(@whens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
-                               ,$self->_field_sql($when,0)
+  if (ref($element) eq "Database::Accessor::If"){
+    my @thens  = ();
+    my $last   = $element->get_if(-1);
+   
+    
+    for (my $index=0; $index<= $element->if_count()-2; $index++) {
+       my $then = $element->get_if($index);
+              if (ref($then) eq "Database::Accessor::If::Then"){
+           push(@thens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
+                               ,$self->_field_sql($then,0)
                                ,Database::Accessor::Driver::DBI::SQL::THEN
-                               ,$self->_field_sql($when->statement(),0)));
+                               ,$self->_field_sql($then->then(),0)));
         }
         else {
           my $condition_sql;
-          my $statement;
-          foreach my $condition (@{$when}){
+          my $else;
+          foreach my $condition (@{$then}){
             $condition_sql .= $self->_field_sql($condition,0);
-            $statement = $condition->statement()
-               if ( $condition->statement());
-          }           push(@whens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
+            $else = $condition->then()
+               if ( $condition->then());
+          } 
+          push(@thens,join(" ",Database::Accessor::Driver::DBI::SQL::WHEN
                                ,$condition_sql
                                ,Database::Accessor::Driver::DBI::SQL::THEN
-                               ,$self->_field_sql($statement,0)));
+                               ,$self->_field_sql($else,0)));
                   }
     }
+    
     return join(" ",Database::Accessor::Driver::DBI::SQL::CASE
-                   ,@whens
+                   ,@thens
                    ,Database::Accessor::Driver::DBI::SQL::ELSE
-                   ,$self->_field_sql($last->statement(),0)
+                   ,$self->_field_sql($last->then(),0)
                    ,Database::Accessor::Driver::DBI::SQL::END_CASE);
   }
-  elsif (ref($element) eq "Database::Accessor::Case::When"){
+  elsif (ref($element) eq "Database::Accessor::If::Then"){
     
-        return $self->_predicate_sql($element);
+       return $self->_predicate_sql($element);
 
   } 
   elsif (ref($element) eq "Database::Accessor::Expression"){

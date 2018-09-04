@@ -17,12 +17,12 @@ my $in_hash = {
     view                      => { name => 'Products' },
     elements                  => [
         {
-            whens => [
+            ifs => [
                 {
                     left      => { name  => 'Price', },
                     right     => { value => '10' },
                     operator  => '<',
-                    statement => { value => 'under 10$' }
+                    then => { value => 'under 10$' }
                 },
                 [
                     {
@@ -35,7 +35,7 @@ my $in_hash = {
                         left      => { name => 'Price' },
                         right     => { value => '30' },
                         operator  => '<=',
-                        statement => { value => '10~30$' }
+                        then => { value => '10~30$' }
                     }
                 ],
                 [
@@ -49,10 +49,10 @@ my $in_hash = {
                         left      => { name => 'Price' },
                         right     => { value => '100' },
                         operator  => '<=',
-                        statement => { value => '30~100$' }
+                        then => { value => '30~100$' }
                     }
                 ],
-                { statement => { value => 'Over 100$' } },
+                { then => { value => 'Over 100$' } },
             ],
             alias => 'price_group'
         }
@@ -66,7 +66,7 @@ my $container = {
 
 my $tests = [
     {
-        caption  => 'Retrieve with case statement in elements',
+        caption  => 'Retrieve with case then in elements',
         retrieve => {
             sql =>
 "SELECT CASE WHEN Products.Price < ? THEN ? WHEN Products.Price >= ? AND Products.Price <= ? THEN ? WHEN Products.Price > ? AND Products.Price <= ? THEN ? ELSE ? END price_group FROM Products",
@@ -82,12 +82,12 @@ my $tests = [
         key      => 'elements',
         elements => [
             {
-                whens => [
+                ifs => [
                     {
                         left      => { name  => 'Price', },
                         right     => { value => '100' },
                         operator  => '<',
-                        statement => { value => 'under 100$' }
+                        then => { value => 'under 100$' }
                     },
                     {
                         left  => { name => 'Price' },
@@ -97,9 +97,9 @@ my $tests = [
                             { value => '120' },
                         ],
                         operator => 'IN',
-                        statement => { value => 'Price 105,110 or 120$' } 
+                        then => { value => 'Price 105,110 or 120$' } 
                     },
-                    { statement => { value => 'Over 120$' } },
+                    { then => { value => 'Over 120$' } },
                 ]
             }
         ],
@@ -117,12 +117,12 @@ my $tests = [
         key      => 'elements',
         elements => [
             {
-                whens => [
+                ifs => [
                     {
                         left      => { name  => 'Price', },
                         right     => { value => '10' },
                         operator  => '<',
-                        statement => { value => 'under 10$' }
+                        then => { value => 'under 10$' }
                     },
                     [
                     {
@@ -150,11 +150,11 @@ my $tests = [
                         left      => { name => 'Price' },
                         right     => { value => '50' },
                         operator  => '<=',
-                        statement => { value => '10~30$ or 40~50$' },
+                        then => { value => '10~30$ or 40~50$' },
                         close_parentheses=>1
                     }
                     ],
-                    { statement => { value => 'Over 50$' } },
+                    { then => { value => 'Over 50$' } },
                 ]
             }
         ],
@@ -171,20 +171,20 @@ my $tests = [
         key      => 'elements',
         elements => [
             {
-                whens => [
+                ifs => [
                     {
                         left      => { name  => 'Sale_Price', },
                         right     => { name  => 'Price',},
                         operator  => '<',
-                        statement => { value => 'On Sale' }
+                        then => { value => 'On Sale' }
                     },
                     {
                         left  => { name => 'Sale_Price' },
                         right => { name => 'Price',},
                         operator => '>',
-                        statement => { value => 'Premium Price' } 
+                        then => { value => 'Premium Price' } 
                     },
-                    { statement => { value => 'Normal Price' } },
+                    { then => { value => 'Normal Price' } },
                 ]
             }
         ],
@@ -202,15 +202,15 @@ my $tests = [
         key      => 'elements',
         elements => [
             {
-                whens => [
+                ifs => [
                     {
                         left      => { name  => 'On_Sale', },
                         right     => { value => 1,},
                         operator  => '=',
-                        statement => { whens=>[{left     => {name =>'Stock'},
+                        then => { ifs=>[{left     => {name =>'Stock'},
                                                 right    => {value=>10},
                                                 operator => '<=',
-                                                statement=> {value=>.2}},
+                                                then=> {value=>.2}},
                                                [{left     => {name =>'Stock'},
                                                 right    => {value=>10},
                                                 operator => '>'},
@@ -218,16 +218,16 @@ my $tests = [
                                                 right    => {value=>100},
                                                 operator => '<=',
                                                 condition=> 'AND',                                                
-                                                statement=> {value=>.1}}],
-                                               {statement=> {value=>.05}}] },
+                                                then=> {value=>.1}}],
+                                               {then=> {value=>.05}}] },
                     },
                     {
                         left  => { name => 'On_Sale' },
                         right => { value=> 2,},
                         operator => '=',
-                        statement => { value => .5 } 
+                        then => { value => .5 } 
                     },
-                    { statement => { value => 1 } },
+                    { then => { value => 1 } },
                 ],
                 alias=>'Discount'
             }
@@ -243,6 +243,6 @@ my $tests = [
     },
 ];
 
-# my $test = pop(@{$tests});
+# my $test = shift(@{$tests});
 
 $utils->sql_param_ok( $in_hash,$tests );

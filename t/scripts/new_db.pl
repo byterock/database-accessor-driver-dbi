@@ -4,7 +4,7 @@ use Data::Dumper;
 use Cwd;
 my $dir = getcwd;
 warn("dir=".$dir);
-# use  SQL::Statement;
+# use  SQL::then;
 
 my $dbh = DBI->connect('dbi:DBM:',undef,undef,{f_dir=>"db"});
 

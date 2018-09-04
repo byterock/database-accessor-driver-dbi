@@ -582,10 +582,10 @@ my $tests = [
         key        => 'conditions',
         conditions => [
             {
-                left => {whens=>[{ left      => { name => 'Price', },
+                left => {ifs=>[{ left      => { name => 'Price', },
                           right     => { value => '10' },
                           operator  => '<',
-                          statement=>{value=>'under 10$'}},
+                          then=>{value=>'under 10$'}},
                         [{left      => { name =>'Price'},
                           right     => { value => '10' },
                           operator   => '>=',
@@ -594,7 +594,7 @@ my $tests = [
                            left      => {name=>'Price'},
                            right     => { value => '30' },
                            operator  => '<=',
-                           statement=>{value=>'10~30$'}}
+                           then=>{value=>'10~30$'}}
                         ],
                         [{left      => {name => 'Price'},
                           right     => { value => '30' },
@@ -604,9 +604,9 @@ my $tests = [
                            left      => {name=>'Price'},
                            right     => { value => '100' },
                            operator  => '<=',
-                           statement=>{value=>'30~100$'}}
+                           then=>{value=>'30~100$'}}
                         ],
-                        { statement=>{value=>'Over 100$'}},
+                        { then=>{value=>'Over 100$'}},
                         ],},
                 right     => { value => 'test1' },
                 operator  => '=',
