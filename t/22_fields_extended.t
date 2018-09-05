@@ -1,5 +1,5 @@
 #!perl
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
@@ -276,8 +276,37 @@ my $tests = [
         },
 
     },
+     {
+        caption  => 'use identity option with exe array',
+        key      => 'elements',
+        elements => [
+            { name => 'id',
+              identity =>{'DBI::db'=>{DBM  => {
+                            name => 'NEXTVAL',
+                            view => 'products_seq'}
+                }} 
+            },
+            { name => 'first_name', },
+            { name => 'last_name', },
+        ],
+        create => {
+            container => [
+              {first_name=>'Bill',id=>"",last_name =>'Bloggings'},
+              {first_name=>'Jane',id=>"",last_name =>'Doe'},
+              {first_name=>'John',id=>"",last_name =>'Doe'},
+              {first_name=>'Joe' ,id=>"",last_name =>'Blow'},
+              ],
+            sql =>
+              "INSERT INTO Products ( first_name, id, last_name ) VALUES( ?, products_seq.NEXTVAL, ? )",
+            params => [
+              ['Bill','Jane','John','Joe'],
+              ['Bloggings','Doe','Doe','Blow'],
+              ]
+        },
+
+    },
 ];
 
-# my $test = pop(@{$tests});
+ # my $test = pop(@{$tests});
 
 $utils->sql_param_ok( $in_hash, $tests );
