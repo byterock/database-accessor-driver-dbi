@@ -23,6 +23,12 @@ with(qw( Database::Accessor::Roles::Driver));
             default     => 0,
      );
 
+  has has_idenity => (
+            is  => 'rw',
+            isa => 'Bool',
+            default     => 0,
+  );
+  
   has _aggregate_count => (
     traits  => ['Counter'],
     is      => 'rw',
@@ -97,6 +103,10 @@ sub execute {
       }
     }
     else {
+      if ($self->has_idenity){
+         my @params = grep({ref($_) eq "Database::Accessor::Param"} @{$self->params});
+         $self->params(\@params);         
+      }
       $result->params([map({$_->value} @{$self->params} )]);
     }
     
@@ -651,6 +661,7 @@ sub _insert_update_container {
         my $field = $self->get_element_by_name( $key);
         next
          if(!$field);
+         
          if ($action eq Database::Accessor::Constants::UPDATE){
            push(@field_sql,join(" ",
                           $self->_field_sql($field),
@@ -658,9 +669,24 @@ sub _insert_update_container {
                           $self->_field_sql(Database::Accessor::Param->new({value=> $container->{$key}}))));
         }
         else {
-           push(@field_sql, $self->_field_sql($field));
-           my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
-           $self->add_param($param);
+          if ($field->identity){
+              my $identity = $field->identity();
+              if (exists($identity->{$self->DB_Class}->{$self->dbh()->{Driver}->{Name}})){
+                  my $new_field;
+                  my $identity_element = $identity->{$self->DB_Class}->{$self->dbh()->{Driver}->{Name}};
+                  if (exists($identity_element->{name})) {
+                    $new_field = Database::Accessor::Element->new($identity_element);
+                    $self->add_param($new_field);
+                  }
+                  $self->has_idenity(1);                }
+          }
+          else {
+              my $param =  Database::Accessor::Param->new({value=> $container->{$key}});
+              $self->add_param($param);
+             
+          } 
+          push(@field_sql, $self->_field_sql($field));
+
         }
       }
     }
@@ -725,16 +751,16 @@ sub _insert {
     $self->da_warn("_insert"," Fields clause='$fields_clause'")
       if $self->da_warning()>=5;
     
-                        
-    my $values_clause =  Database::Accessor::Driver::DBI::SQL::VALUES
+    my $values_clause = 
+     Database::Accessor::Driver::DBI::SQL::VALUES
                         .join(" ",
                         Database::Accessor::Driver::DBI::SQL::OPEN_PARENS,
                         join(", ",
-                              map(Database::Accessor::Driver::DBI::SQL::PARAM,@field_sql)
+                              map({ref($_) eq 'Database::Accessor::Param' ? Database::Accessor::Driver::DBI::SQL::PARAM : $self->_field_sql($_,1)} @{$self->params()})
                              ),
                         Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS);
                           
-   
+    
     $self->da_warn("_insert"," Values clause='$values_clause'")
       if $self->da_warning()>=5;
  

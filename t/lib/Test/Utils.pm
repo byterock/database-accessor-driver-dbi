@@ -22,6 +22,7 @@ sub connect {
 
     my $dbh = DBI->connect( 'dbi:DBM:', undef, undef, { f_dir => $self->db } );
 
+ # warn("dbh=".ref($dbh));
     # print $dbh->{sql_handler}, "\n";  return $dbh;
 }
 
@@ -86,7 +87,7 @@ sub sql_param_ok {
             }
         }
         my $da = Database::Accessor->new($in_hash);
-        # warn("da=".Dumper($da));
+         # warn("da=".Dumper($da));
         foreach my $action ( (qw(create retrieve update delete)) ) {
             next
               unless ( exists( $test->{$action} ) );
