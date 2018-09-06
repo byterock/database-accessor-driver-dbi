@@ -266,12 +266,11 @@ my $tests = [
         ],
         create => {
             container => {
-                id         => '',
                 last_name  => 'Bloggings',
                 first_name => 'Bill',
             },
             sql =>
-              "INSERT INTO Products ( first_name, id, last_name ) VALUES( ?, products_seq.NEXTVAL, ? )",
+              "INSERT INTO Products ( id, first_name, last_name ) VALUES( products_seq.NEXTVAL, ?, ? )",
             params => [ 'Bill', 'Bloggings' ]
         },
 
@@ -291,13 +290,13 @@ my $tests = [
         ],
         create => {
             container => [
-              {first_name=>'Bill',id=>"",last_name =>'Bloggings'},
-              {first_name=>'Jane',id=>"",last_name =>'Doe'},
-              {first_name=>'John',id=>"",last_name =>'Doe'},
-              {first_name=>'Joe' ,id=>"",last_name =>'Blow'},
+              {first_name=>'Bill',last_name =>'Bloggings'},
+              {first_name=>'Jane',last_name =>'Doe'},
+              {first_name=>'John',last_name =>'Doe'},
+              {first_name=>'Joe' ,last_name =>'Blow'},
               ],
             sql =>
-              "INSERT INTO Products ( first_name, id, last_name ) VALUES( ?, products_seq.NEXTVAL, ? )",
+              "INSERT INTO Products ( id, first_name, last_name ) VALUES( products_seq.NEXTVAL, ?, ? )",
             params => [
               ['Bill','Jane','John','Joe'],
               ['Bloggings','Doe','Doe','Blow'],
@@ -307,6 +306,6 @@ my $tests = [
     },
 ];
 
- # my $test = pop(@{$tests});
+  # my $test =  pop(@{$tests});
 
 $utils->sql_param_ok( $in_hash, $tests );
