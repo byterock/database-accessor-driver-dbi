@@ -646,6 +646,17 @@ sub _select {
 
 }
 
+sub _die_on_identity {
+    my $self = shift;
+    my ($action, $field)    = @_;
+           die "Database::Accessor::Driver::DBI::Error->"
+        . "Attempt to use identity element: "
+        . $field
+        . " in an "
+       . lc($action);
+}
+
+
 sub _insert_update_container {
     my $self = shift;
     my ( $action, $container ) = @_;
@@ -659,6 +670,9 @@ sub _insert_update_container {
             my $field = $self->get_element_by_name($key);
             next
               if ( !$field );
+            $self->_die_on_identity($action,$key)
+              if ($field->identity);
+
             push( @fields, $field );
             if ( $action eq Database::Accessor::Constants::UPDATE ) {
                 push(
@@ -693,6 +707,8 @@ sub _insert_update_container {
             my $field = $self->get_element_by_name($key);
             next
               if ( !$field );
+            $self->_die_on_identity($action,$key)
+              if ($field->identity);
 
             if ( $action eq Database::Accessor::Constants::UPDATE ) {
                 push(
@@ -783,7 +799,7 @@ sub _insert {
         $container );
         
             my @params =  @{ $self->params() };
-    if ($self->identity_index() ne undef ){
+    if ($self->identity_index() >=0){
        my $field = $self->elements()->[$self->identity_index()];
        my $identity = $field->identity();
        if (exists(

@@ -1,5 +1,5 @@
 #!perl
-use Test::More tests => 14;
+use Test::More tests => 18;
 use Test::Fatal;
 use lib ('D:\GitHub\database-accessor\lib');
 use lib ('D:\GitHub\database-accessor-driver-dbi\lib');
@@ -304,8 +304,64 @@ my $tests = [
         },
 
     },
+    {
+        caption  => 'have identity option but do not use',
+        key      => 'elements',
+        elements => [
+            { name => 'id',
+              identity =>{'DBI::db'=>{'ORACLE'  => {
+                            name => 'NEXTVAL',
+                            view => 'products_seq'}
+                }} 
+            },
+            { name => 'first_name', },
+            { name => 'last_name', },
+        ],
+        create => {
+            container => {
+                last_name  => 'Bloggings',
+                first_name => 'Bill',
+            },
+            sql =>
+              "INSERT INTO Products ( first_name, last_name ) VALUES( ?, ? )",
+            params => [ 'Bill', 'Bloggings' ]
+        },
+
+    },
+    {
+        caption  => 'on an identity element blocked',
+        type     => 'exception',
+        key      => 'elements',
+        elements => [
+            { name => 'id',
+              identity =>{'DBI::db'=>{'ORACLE'  => {
+                            name => 'NEXTVAL',
+                            view => 'products_seq'}
+                }} 
+            },
+            { name => 'first_name', },
+            { name => 'last_name', },
+        ],
+        update => {
+            container => {
+                id         => '101',
+                last_name  => 'Bloggings',
+                first_name => 'Bill',
+            },
+             message => 'Attempt to use identity element: id in an update' 
+        },
+        create => {
+            container => {
+                id         => '101',
+                last_name  => 'Bloggings',
+                first_name => 'Bill',
+            },
+             message => 'Attempt to use identity element: id in an create' 
+        },
+    },
 ];
 
-  # my $test =  pop(@{$tests});
+# my $test =  pop(@{$tests});
 
 $utils->sql_param_ok( $in_hash, $tests );
+
