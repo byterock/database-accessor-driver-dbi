@@ -47,6 +47,7 @@ my $in_hash = {
 my $container = {
     last_name  => 'Bloggings',
     first_name => 'Bill',
+    street     => '101 test'
 };
 
 my $tests = [

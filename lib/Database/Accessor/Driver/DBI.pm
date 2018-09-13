@@ -48,7 +48,7 @@ has _aggregate_count => (
 sub execute {
     my $self = shift;
     my ( $result, $action, $dbh, $container, $opt ) = @_;
-
+    local $dbh->{PrintError} = 0;
     local $dbh->{RaiseError} = 1
       unless ( $self->da_raise_error_off );
     $self->dbh($dbh);
@@ -797,7 +797,6 @@ sub _insert {
     my (@field_sql) =
       $self->_insert_update_container( Database::Accessor::Constants::CREATE,
         $container );
-        
             my @params =  @{ $self->params() };
     if ($self->identity_index() >=0){
        my $field = $self->elements()->[$self->identity_index()];

@@ -12,10 +12,9 @@ my $in_hash = { da_compose_only=>1,
                 view => { name  => 'name' },
                  elements => [ { name => 'last_name', }, { name => 'first_name', }, ]};
 my $da      = Database::Accessor->new($in_hash);
-my $return  = {};
 my $dbh     = DBI->connect("dbi:ExampleP:", '', '');
 
-eval { $da->retrieve( $dbh, $return ); };
+eval { $da->retrieve( $dbh); };
 
 if ($@) {
     fail("Can not load Database::Accessor::Driver::DBI error=$@");
