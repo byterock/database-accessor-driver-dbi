@@ -48,7 +48,7 @@ sub _build_da {
    my $self = shift;
    my $da = Database::Accessor->new({view    =>{name=>"people"},
                                      elements=>[{name     =>'id',
-                                                 identity =>{'DBI::db'=>{'ORACLE'  => {
+                                                 identity =>{'DBI::db'=>{'Oracle'  => {
                                                  name     => 'NEXTVAL',
                                                  view     => 'people_seq'}
                                                   }} },

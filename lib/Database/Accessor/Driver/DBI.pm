@@ -801,6 +801,7 @@ sub _insert {
     if ($self->identity_index() >=0){
        my $field = $self->elements()->[$self->identity_index()];
        my $identity = $field->identity();
+       
        if (exists(
             $identity->{ $self->DB_Class }->{ $self->dbh()->{Driver}->{Name} }
         )){
