@@ -248,7 +248,8 @@ sub _join_clause {
             Database::Accessor::Driver::DBI::SQL::ON,
             $self->_predicate_clause(
                 Database::Accessor::Driver::DBI::SQL::JOIN,
-                $join->conditions()
+                $join->conditions(),
+                $join->to
             )
         );
 
@@ -260,7 +261,7 @@ sub _join_clause {
 
 sub _predicate_clause {
     my $self = shift;
-    my ( $clause_type, $conditions ) = @_;
+    my ( $clause_type, $conditions,$view ) = @_;
     my $predicate_clause = "";
 
     # warn("constion-".Dumper($conditions));
@@ -269,12 +270,12 @@ sub _predicate_clause {
 
             # foreach my $predicate (  $condition->predicates } ) {
             $predicate_clause .=
-              $self->_predicate_sql( $condition->predicates );
+              $self->_predicate_sql( $condition->predicates,$view );
 
             # }
         }
         else {
-            $predicate_clause .= $self->_predicate_sql($condition);
+            $predicate_clause .= $self->_predicate_sql($condition,$view);
 
         }
     }
@@ -286,7 +287,7 @@ sub _predicate_clause {
 
 sub _predicate_sql {
     my $self = shift;
-    my ($predicate) = @_;
+    my ($predicate,$view) = @_;
 
     # warn("_predicate_sql".Dumper($predicate));
     my $clause = "";
@@ -302,7 +303,7 @@ sub _predicate_sql {
     {
         $clause .= join( " ",
             $self->_field_sql( $predicate->left, 1 ),
-            $predicate->operator, $self->_field_sql( $predicate->right, 1 ) );
+            $predicate->operator, $self->_field_sql( $predicate->right, 1,$view ) );
     }
     elsif (
            $predicate->operator eq Database::Accessor::Driver::DBI::SQL::IS_NULL
@@ -352,7 +353,7 @@ sub _predicate_sql {
 
         $clause .= join( " ",
             $self->_field_sql( $predicate->left, 1 ),
-            $predicate->operator, $self->_field_sql( $predicate->right, 1 ) );
+            $predicate->operator, $self->_field_sql( $predicate->right, 1,$view ) );
     }
     elsif (
         $predicate->operator eq Database::Accessor::Driver::DBI::SQL::BETWEEN )
@@ -368,9 +369,9 @@ sub _predicate_sql {
             $self->_field_sql( $predicate->left, 1 ),
             join( " ",
                 Database::Accessor::Driver::DBI::SQL::BETWEEN,
-                $self->_field_sql( $predicate->right->[0], 1 ),
+                $self->_field_sql( $predicate->right->[0], 1,$view ),
                 Database::Accessor::Driver::DBI::SQL::AND,
-                $self->_field_sql( $predicate->right->[1], 1 ) )
+                $self->_field_sql( $predicate->right->[1], 1,$view ) )
         );
     }
     elsif ($predicate->operator eq Database::Accessor::Driver::DBI::SQL::IN
@@ -401,7 +402,7 @@ sub _predicate_sql {
             $self->_field_sql( $predicate->left, 1 ),
             $predicate->operator(),
             Database::Accessor::Driver::DBI::SQL::OPEN_PARENS
-              . $self->_field_sql( $predicate->right, 1 )
+              . $self->_field_sql( $predicate->right, 1,$view )
               . Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS );
 
     }
@@ -415,9 +416,9 @@ sub _predicate_sql {
 
 sub _field_sql {
     my $self = shift;
-    my ( $element, $use_view ) = @_;
+    my ( $element, $use_view,$in_view ) = @_;
 
-    # warn("JPS ".Dumper($element).",use_view=$use_view");
+ # warn("JPS ".Dumper($in_view).",use_view=$use_view");
     # my ($package, $filename, $line) = caller;
     # warn(" line=$line")
     # if (!$use_view);
@@ -432,7 +433,7 @@ sub _field_sql {
                     @thens,
                     join( " ",
                         Database::Accessor::Driver::DBI::SQL::WHEN,
-                        $self->_field_sql( $then, 0 ),
+                        $self->_field_sql( $then, 0, ),
                         Database::Accessor::Driver::DBI::SQL::THEN,
                         $self->_field_sql( $then->then(), 0 ) )
                 );
@@ -565,8 +566,16 @@ sub _field_sql {
     }
     else {
         my $sql = $element->name;
-
-        $sql = $element->view . "." . $element->name
+        my $view = $element->view; 
+        $view = $self->view->alias()
+           if ($view eq $self->view->name() and  $self->view->alias());
+        
+        if ($in_view) {
+             $view = $in_view->name();
+             $view = $in_view->alias()
+               if ($in_view->alias());
+        }
+        $sql = $view . "." . $element->name
           if ( $use_view and !$self->da_suppress_view_name );
 
         return $sql;
