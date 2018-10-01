@@ -570,7 +570,7 @@ sub _field_sql {
         $view = $self->view->alias()
            if ($view eq $self->view->name() and  $self->view->alias());
         
-        if ($in_view) {
+        if (!$view and $in_view) {
              $view = $in_view->name();
              $view = $in_view->alias()
                if ($in_view->alias());

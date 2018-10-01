@@ -14,11 +14,11 @@ sub _create_sql {
    'CREATE TABLE  ADDRESS 
    (ID NUMBER, 
     TIME_ZONE_ID NUMBER, 
-    COUNTRY_ID CHAR(2), 
+    COUNTRY_ID NUMBER, 
     STREET VARCHAR2(250), 
     POSTAL_CODE VARCHAR2(15), 
     CITY VARCHAR2(100), 
-    REGION_ID CHAR(2), 
+    REGION_ID NUMBER, 
     CONSTRAINT ADDRESS_PK PRIMARY KEY ("ID") ENABLE
    )',
    'create sequence address_seq minvalue 1 maxvalue 999999999999999999999999999 increment by 1 start with 1 cache 20 noorder nocycle',
@@ -116,13 +116,13 @@ END;"
 sub _fill_sql {
     my $self = shift;
     return ["INSERT INTO people (id,last_name,first_name,user_id) 
-                  VALUES (people_seq.nextval,'Bill','Master','masterb')",
+                  VALUES (people_seq.nextval,'Master','Bill','masterb')",
             "INSERT INTO people (id,last_name,first_name,user_id) 
-                  VALUES (people_seq.nextval,'Bob','Milk','milkb')",
+                  VALUES (people_seq.nextval,'Milk','Bob','milkb')",
             "INSERT INTO people (id,last_name,first_name,user_id) 
-                  VALUES (people_seq.nextval,'Jill','Nobert','norbertj')",
+                  VALUES (people_seq.nextval,'Nobert','Jill','norbertj')",
             "INSERT INTO people (id,last_name,first_name,user_id) 
-                  VALUES (people_seq.nextval,'Alfred E.','Newman','newmanae')",
+                  VALUES (people_seq.nextval,'Newman','Alfred E.','newmanae')",
             "INSERT INTO address (id,time_zone_id,country_id,street,postal_code,city,region_id)
                   VALUES (address_seq.nextval,1,2,'1414 New lane','M5H-1E6','Toronto',21)",
             "INSERT INTO address (id,time_zone_id,country_id,street,postal_code,city,region_id)
