@@ -51,6 +51,15 @@ use constant CLOSE_PARENS      =>')';
 use constant CLOSE_PARENTHESES =>Database::Accessor::Driver::DBI::SQL::CLOSE_PARENS;
 use constant PARAM             =>'?';
 use constant SET               =>'SET'; 
+use constant NAME              =>'NAME';
+use constant NAME_LC           =>'NAME_lc';
+use constant NAME_UC           =>'NAME_uc';
+
+use constant DA_KEY_CASE       => {
+   Native => Database::Accessor::Driver::DBI::SQL::NAME,
+   Lower  => Database::Accessor::Driver::DBI::SQL::NAME_LC,
+   Upper  => Database::Accessor::Driver::DBI::SQL::NAME_UC
+   };
 use constant OPERATION_TYPES   => {
    Database::Accessor::Driver::DBI::SQL::SELECT => 1,
    Database::Accessor::Driver::DBI::SQL::INSERT => 1,

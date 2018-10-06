@@ -9,6 +9,7 @@ use lib "D:/GitHub/database-accessor/lib";
 use Data::Dumper;
 use Database::Accessor::Constants;
 use Database::Accessor::Driver::DBI::SQL;
+use JSON qw(encode_json);
 use Moose;
 with(qw( Database::Accessor::Roles::Driver));
 
@@ -60,13 +61,13 @@ sub execute {
     }
     elsif ( $action eq Database::Accessor::Constants::UPDATE ) {
         $sql = $self->_update($container);
-        $sql .= $self->_join_clause();
+       # $sql .= $self->_join_clause();
         $sql .= $self->_where_clause();
 
     }
     elsif ( $action eq Database::Accessor::Constants::DELETE ) {
         $sql = $self->_delete();
-        $sql .= $self->_join_clause();
+        #$sql .= $self->_join_clause();
         $sql .= $self->_where_clause();
 
     }
@@ -120,7 +121,20 @@ sub execute {
 
         if ( $action eq Database::Accessor::Constants::RETRIEVE ) {
             $sth->execute();
-            my $results = $sth->fetchall_arrayref();
+            my $results;
+            
+            if (!$self->is_ArrayRef()) {
+                while (my $hash_ref = $sth->fetchrow_hashref(Database::Accessor::Driver::DBI::SQL::DA_KEY_CASE->{$self->da_key_case})) {
+                    if ($self->is_JSON()){
+                        push(@{$results},JSON::encode_json($hash_ref));                    }
+                    else {
+                        push(@{$results},$hash_ref);
+                    }
+                };
+            }
+            else {
+                $results = $sth->fetchall_arrayref();
+            }
             $result->set($results);
         }
         else {
@@ -623,7 +637,7 @@ sub _fields_sql {
         if ( $field->alias() ) {
             my $alias = $field->alias();
             $alias = '"' . $alias . '"'
-              if ( index( $alias, " " ) != -1 );
+                if ( index( $alias, " " ) != -1 or $self->is_Native);
 
             $sql .= join( " ", "", $alias );
         }

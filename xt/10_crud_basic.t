@@ -13,6 +13,7 @@ use Xtest::DB::Users;
 use Xtest::DA::Person;
 use Xtest::DA::Address;
 use Xtest::DA::PeopleAddress;
+use Xtest::DA::People;
 use Test::Deep qw(cmp_deeply);
 
 my $user_db = Xtest::DB::Users->new();
@@ -70,8 +71,55 @@ $da->add_condition({
 
 $da->retrieve($dbh);
 
-my $test_data = $user_db->_people_data->[4];
+my $test_data = $user_db->people_data->[4];
+cmp_deeply( $da->result()->set->[0], $test_data,
+            "Single Person result correct");
 
- cmp_deeply( $da->result()->set->[0], $test_data,
-            "Return results correct");
-                
+$test_data = $user_db->people_data;
+$da->reset_conditions();
+$da->add_sort({name=>'id'});
+
+$da->retrieve($dbh);
+
+ # warn("person=".Dumper($da->result()->set));
+ # warn("person=".Dumper($test_data));
+cmp_deeply( $da->result()->set, $test_data,
+            "All Persons result correct");
+
+my $persons = Xtest::DA::People->new();
+my $persons_da = $persons->da();
+$persons_da->add_sort({name=>'user_id'});
+$test_data = $user_db->persons_data;
+$persons_da->retrieve($dbh);
+cmp_deeply( $persons_da->result()->set, $test_data,
+            "People results correct");
+
+
+$da->add_condition({
+                left => {
+                    name => 'user_id',
+                },
+                right     => { value => $new_person->{user_id }},
+                operator  => '=',
+            });
+
+$da->update($dbh,$user_db->update_person_data);
+$da->retrieve($dbh);
+cmp_deeply( $da->result()->set->[0], $user_db->updated_person_data,
+            "Update person results correct");
+
+$da->reset_conditions();
+$da->add_condition({
+                left => {
+                    name => 'user_id',
+                },
+                right     => { value => $test_data->[1]->[3]},
+                operator  => '=',
+            });
+
+
+$da->delete($dbh);
+$da->retrieve($dbh);
+
+cmp_deeply( $da->result()->set, [],
+            "Delete person results correct");

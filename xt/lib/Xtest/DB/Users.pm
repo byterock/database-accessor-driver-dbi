@@ -50,6 +50,34 @@ has people_data => (
     lazy    => 1,
 );
 
+has person_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_person_data",
+    lazy    => 1,
+);
+
+has persons_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_persons_data",
+    lazy    => 1,
+);
+
+has update_person_data => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    builder => "_update_person_data",
+    lazy    => 1,
+);
+
+has updated_person_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_updated_person_data",
+    lazy    => 1,
+);
+
 has dbh => (
     is  => 'rw',
     isa => 'Object'
@@ -110,18 +138,29 @@ sub fill_db {
            ];
 }
 
-sub _people_data {
+sub _persons_data {
       my $self = shift;
-      return [[1,'Bill'     ,'Master','masterb' ,1,'1414 New lane','Toronto'  ,'M5H-1E6',2,'Canada',21,'NA',1,'EST'],
-         [2,'Bob'      ,'Milk'   ,'milkb'   ,2,'22 Sicamore'  ,'Toronto'  ,'M5H-2F6',2,'Canada',21,'NA',1,'EST'],
-         [3,'Jill'     ,'Nobert' ,'norbertj',3,'PO Box 122'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
-         [4,'Alfred E.','Newman' ,'newmanae',4,'PO Box 233'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
-         [5,'James'    ,'Marceia','marceiaj',6,'Plaza de la Constitucion 2','Ciudad de Mexico','06000',3,'Mexico',21,'NA',2,'CST'],
-        ];
+      return [[5,'James'    ,'Marceia','marceiaj','Ciudad de Mexico','NA'],
+              [1,'Bill'     ,'Master' ,'masterb ','Toronto'  ,'NA'],
+              [2,'Bob'      ,'Milk'   ,'milkb   ','Toronto'  ,'NA'],
+              [4,'Alfred E.','Newman' ,'newmanae','Hollywood','West'],
+              [3,'Jill'     ,'Nobert' ,'norbertj','Hollywood','West'],
+               ];
 
 }
 
-sub _new_person_data {
+
+sub _people_data {
+      my $self = shift;
+      return [[1,'Bill'     ,'Master' ,'masterb ',1,'1414 New lane','Toronto'  ,'M5H-1E6',2,'Canada',21,'NA',1,'EST'],
+              [2,'Bob'      ,'Milk'   ,'milkb   ',2,'22 Sicamore'  ,'Toronto'  ,'M5H-2F6',2,'Canada',21,'NA',1,'EST'],
+              [3,'Jill'     ,'Nobert' ,'norbertj',3,'PO Box 122'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
+              [4,'Alfred E.','Newman' ,'newmanae',4,'PO Box 233'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
+              [5,'James'    ,'Marceia','marceiaj',6,'Plaza de la Constitucion 2','Ciudad de Mexico','06000',3,'Mexico',21,'NA',2,'CST'],
+       
+ ];
+
+}sub _new_person_data {
       my $self = shift;
       return [{first_name=>'James',
                last_name=>'Marceia',
@@ -134,10 +173,49 @@ sub _people_data {
                region_id=>21,
                region=>'NA',
                time_zone_id=>2,
-               time_zone=>'CST',
+               'time zone'=>'CST',
                address_id=>6,
                id=>5},
+               {FIRST_NAME=>'Diego',
+               LAST_NAME=>'Marceia',
+               USER_ID=>'marceiaj',
+               STREET=>'Plaza de la Constitucion 2',
+               CITY=>'Ciudad de Mexico',
+               POSTAL_CODE=>'06000',
+               COUNTRY_ID=>3,
+               COUNTRY=>'Mexico',
+               REGION_ID=>21,
+               REGION=>'NA',
+               TIME_ZONE_ID=>2,
+               'TIME ZONE'=>'CST',
+               ADDRESS_ID=>6,
+               ID=>5},
+               {FIRST_NAME=>'Diego',
+               LAST_NAME=>'Marceia',
+               USER_ID=>'marceiaj',
+               STREET=>'Plaza de la Constitucion 2',
+               CITY=>'Ciudad de Mexico',
+               POSTAL_CODE=>'06000',
+               COUNTRY_ID=>3,
+               country=>'Mexico',
+               REGION_ID=>21,
+               region=>'NA',
+               TIME_ZONE_ID=>2,
+               'time zone'=>'CST',
+               address_id=>6,
+               ID=>5},
         ];
 
 }
+sub _update_person_data {
+    my $self = shift;
+    return {first_name=>'Diego'};
+}
+
+sub _updated_person_data {
+    my $self = shift;
+    return [5,'Diego' ,'Marceia','marceiaj',6,'Plaza de la Constitucion 2','Ciudad de Mexico','06000',3,'Mexico',21,'NA',2,'CST'],
+       
+}
+
 1;

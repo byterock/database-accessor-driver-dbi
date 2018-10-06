@@ -57,7 +57,7 @@ sub _build_da {
                                                 {name=>'user_id'},
                                                 {name=>'id',
                                                  view=>'address',
-                                                 alias=>'assress_id'},
+                                                 alias=>'address_id'},
                                                 {name=>'street',
                                                  view=>'address',},
                                                 {name=>'city',
