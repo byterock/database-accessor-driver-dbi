@@ -76,6 +76,8 @@ cmp_deeply( $da->result()->set->[0], $test_data,
             "Single Person result correct");
 
 $test_data = $user_db->people_data;
+splice($test_data,5,8);
+
 $da->reset_conditions();
 $da->add_sort({name=>'id'});
 
