@@ -61,7 +61,7 @@ my $tests = [
                 conditions => [
                     {
                         left  => { name => 'id',
-                                    },
+                                   view => 'people' },
                         right => {
                             name => 'user_id',
                             view => 'address'
@@ -101,7 +101,8 @@ my $tests = [
                                 alias=>  'test' },
                 conditions => [
                     {
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                   view =>'people' },
                         right => {
                             name => 'user_id',
                             view => 'test',                            
@@ -140,14 +141,16 @@ my $tests = [
                 to         => { name => 'address' },
                 conditions => [
                     {
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                   view =>'people' },
                         right => {
                             name => 'user_id',
                             view => 'address'
                         }
                     },
                      {
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                   view =>'people' },
                         right => {
                             value => '1234',
                         },
@@ -186,7 +189,8 @@ my $tests = [
                 to         => { name => 'address' },
                 conditions => [
                     {
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                   view =>'people' },
                         right => {
                             name => 'user_id',
                             view => 'address'
@@ -199,7 +203,8 @@ my $tests = [
                 to         => { name => 'phone' },
                 conditions => [
                     {
-                        left  => { name => 'phone_id' },
+                        left  => { name => 'phone_id',
+                                   view =>'people' },
                         right => {
                             value=>'1234567890'
                         }
@@ -237,7 +242,8 @@ my $tests = [
                 to         => { name => 'address' },
                 conditions => [
                     { operator=>"!=",
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                   view =>'people' },
                         right =>  {
                               function => 'left',
                               left     => { name => 'city_id',
