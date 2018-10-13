@@ -39,8 +39,13 @@ foreach my $case (qw(Lower Upper Native)) {
         $da->da_result_set($set_type);
         my $type = "is_$set_type";
         ok( $da->$type == 1, "return set is a $set_type" );
+        if ( $da->is_Class ) {
+            
+        }
+  
         $da->retrieve($dbh);
         my $results;
+        
         if ( $da->is_JSON ) {
             eval { $results = decode_json( $da->result()->set->[0] ); };
             if ($@) {
@@ -58,4 +63,15 @@ foreach my $case (qw(Lower Upper Native)) {
 
     }
 }
+
+    $da->da_result_class("Xtest::DA::Person");
+    $da->da_result_set("Class");
+     $da->da_key_case("Lower");
+    $da->retrieve($dbh);
+    my  $class = $da->result()->set->[0];
+    ok(ref($class) eq "Xtest::DA::Person","Result set is correct class");
+    ok(!$class->time_zone,"time_zone not set");
+    delete( $expected->{"Lower"}->{'time zone'});
+    cmp_deeply({%$class}, $expected->{"Lower"},"Class properties all set");
+    
 

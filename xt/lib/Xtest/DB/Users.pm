@@ -78,6 +78,27 @@ has people_data => (
     lazy    => 1,
 );
 
+has update_people_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_update_people_data",
+    lazy    => 1,
+);
+
+
+has update_people_id_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_update_people_id_data",
+    lazy    => 1,
+);
+has updated_people_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_updated_people_data",
+    lazy    => 1,
+);
+
 has dbh => (
     is  => 'rw',
     isa => 'Object'
@@ -156,7 +177,11 @@ sub _people_data {
               [2,'Bob'      ,'Milk'   ,'milkb   ',2,'22 Sicamore'  ,'Toronto'  ,'M5H-2F6',2,'Canada',21,'NA',1,'EST'],
               [3,'Jill'     ,'Nobert' ,'norbertj',3,'PO Box 122'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
               [4,'Alfred E.','Newman' ,'newmanae',4,'PO Box 233'   ,'Hollywood','90210'  ,1,'USA'   ,10,'West',3,'PST'],
-              [5,'James'    ,'Marceia','marceiaj',6,'Plaza de la Constitucion 2','Ciudad de Mexico','06000',3,'Mexico',21,'NA',2,'CST'],
+              [5,'James'    ,'Marceia','marceiaj',6   ,'Plaza de la Constitucion 2','Ciudad de Mexico','06000',3     ,'Mexico',21   ,'NA' ,2    ,'CST'],
+              [6,'Tom'      ,'Atkins'  ,'atkinst ',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+              [7,'Tom'      ,'Atkins2' ,'atkinst2',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+              [8,'Tom'      ,'Atkins3' ,'atkinst3',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+              [9,'Tom'      ,'Atkins4' ,'atkinst4',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
        
  ];
 
@@ -204,6 +229,18 @@ sub _people_data {
                'time zone'=>'CST',
                address_id=>6,
                ID=>5},
+              {first_name =>'Tom',
+                last_name =>'Atkins',
+                user_id   =>'atkinst'},
+              {first_name =>'Tom',
+                last_name =>'Atkins2',
+                user_id   =>'atkinst2'},
+              {first_name =>'Tom',
+                last_name =>'Atkins3',
+                user_id   =>'atkinst3'},
+              {first_name =>'Tom',
+                last_name =>'Atkins4',
+                user_id   =>'atkinst4'},
         ];
 
 }
@@ -218,4 +255,34 @@ sub _update_person_data {
        
 }
 
+sub _updated_people_data {
+    my $self = shift;
+     return [6,'Tommy'      ,'Atkins'  ,'atkinst ',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+            [7,'Tommy2'      ,'Atkins2' ,'atkinst2',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+            [8,'Tommy3'      ,'Atkins3' ,'atkinst3',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+            [9,'Tommy4'      ,'Atkins4' ,'atkinst4',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+       
+     
+}
+
+sub _update_people_data {
+    my $self = shift;
+    
+    return [{first_name=>'Tommy'},  
+            {first_name=>'Tommy2'},  
+            {first_name=>'Tommy3'},  
+            {first_name=>'Tommy4'},
+           ];
+}
+
+sub _update_people_id_data {
+    my $self = shift;
+    
+    return [6,  
+            7,  
+            8,  
+            9,
+           ];
+}
+
 1;

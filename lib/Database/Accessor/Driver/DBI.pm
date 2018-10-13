@@ -47,7 +47,10 @@ has _aggregate_count => (
 # }
 
 sub execute {
+    
+    
     my $self = shift;
+    
     my ( $result, $action, $dbh, $container, $opt ) = @_;
     local $dbh->{PrintError} = 0;
     local $dbh->{RaiseError} = 1
@@ -125,7 +128,12 @@ sub execute {
             
             if (!$self->is_ArrayRef()) {
                 while (my $hash_ref = $sth->fetchrow_hashref(Database::Accessor::Driver::DBI::SQL::DA_KEY_CASE->{$self->da_key_case})) {
-                    if ($self->is_JSON()){
+                    if ($self->is_Class() and $self->da_result_class()){
+                        my $class=$self->da_result_class();
+                        my $new =  $class->new($hash_ref);
+                        push(@{$results},$new);
+                    }
+                    elsif ($self->is_JSON()){
                         push(@{$results},JSON::encode_json($hash_ref));                    }
                     else {
                         push(@{$results},$hash_ref);
@@ -162,6 +170,8 @@ sub execute {
         $result->error($@);
         return 0;
     }
+    
+    
     return 1;
 
 }

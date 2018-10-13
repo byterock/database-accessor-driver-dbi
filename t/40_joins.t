@@ -60,7 +60,8 @@ my $tests = [
                 to         => { name => 'address' },
                 conditions => [
                     {
-                        left  => { name => 'id' },
+                        left  => { name => 'id',
+                                    },
                         right => {
                             name => 'user_id',
                             view => 'address'
@@ -82,11 +83,11 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id = address.user_id WHERE people.first_name = ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name = ?",
             params => [ 'Bill', 'Bloggings', 'test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address ON people.id = address.user_id WHERE people.first_name = ?",
+            sql    => "DELETE FROM people WHERE people.first_name = ?",
             params => ['test1']
         },
     },
@@ -103,6 +104,7 @@ my $tests = [
                         left  => { name => 'id' },
                         right => {
                             name => 'user_id',
+                            view => 'test',                            
                         }
                     }
                 ]
@@ -121,11 +123,11 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address test ON people.id = test.user_id WHERE people.first_name = ?",
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name = ?",
             params => [ 'Bill', 'Bloggings', 'test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address test ON people.id = test.user_id WHERE people.first_name = ?",
+            sql    => "DELETE FROM people WHERE people.first_name = ?",
             params => ['test1']
         },
     }, 
@@ -167,12 +169,12 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id = address.user_id AND people.id = ? WHERE people.first_name = ?",
-            params => [ 'Bill', 'Bloggings', '1234','test1' ]
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name = ?",
+            params => [ 'Bill', 'Bloggings', 'test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address ON people.id = address.user_id AND people.id = ? WHERE people.first_name = ?",
-            params => ['1234','test1']
+            sql    => "DELETE FROM people WHERE people.first_name = ?",
+            params => ['test1']
         },
     },
       {
@@ -218,12 +220,12 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id = address.user_id RIGHT JOIN phone ON people.phone_id = ? WHERE people.first_name = ?",
-            params => [ 'Bill', 'Bloggings', '1234567890', 'test1' ]
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name = ?",
+            params => [ 'Bill', 'Bloggings', 'test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address ON people.id = address.user_id RIGHT JOIN phone ON people.phone_id = ? WHERE people.first_name = ?",
-            params => ['1234567890','test1']
+            sql    => "DELETE FROM people WHERE people.first_name = ?",
+            params => ['test1']
         },
     },
      {
@@ -259,18 +261,19 @@ my $tests = [
         update => {
             container => $container,
             sql =>
-"UPDATE people SET first_name = ?, last_name = ? LEFT JOIN address ON people.id != LEFT(address.city_id,?) WHERE people.first_name = ?",
-            params => [ 'Bill', 'Bloggings','11','test1' ]
+"UPDATE people SET first_name = ?, last_name = ? WHERE people.first_name = ?",
+            params => [ 'Bill', 'Bloggings','test1' ]
         },
         delete => {
-            sql    => "DELETE FROM people LEFT JOIN address ON people.id != LEFT(address.city_id,?) WHERE people.first_name = ?",
-            params => ['11','test1']
+            sql    => "DELETE FROM people WHERE people.first_name = ?",
+            params => ['test1']
         },
     },
 ];
 
 use Test::More tests => 40;
 
+# my $test = $tests->[1];
 my $utils = Test::Utils->new();
 $utils->sql_param_ok( $in_hash, $tests );
 
