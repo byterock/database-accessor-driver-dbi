@@ -64,7 +64,12 @@ has people_data => (
     lazy    => 1,
 );
 
-has update_person_data => (
+has regions_data => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_regions_data",
+    lazy    => 1,
+);has update_person_data => (
     is      => 'ro',
     isa     => 'HashRef',
     builder => "_update_person_data",
@@ -170,6 +175,15 @@ sub _persons_data {
 
 }
 
+sub _regions_data {
+      my $self = shift;
+      return [['NA'],
+              ['West'],
+              [ undef],
+              
+ ];
+
+}
 
 sub _people_data {
       my $self = shift;
@@ -257,10 +271,10 @@ sub _update_person_data {
 
 sub _updated_people_data {
     my $self = shift;
-     return [6,'Tommy'      ,'Atkins'  ,'atkinst ',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+     return [[6,'Tommy'      ,'Atkins'  ,'atkinst ',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
             [7,'Tommy2'      ,'Atkins2' ,'atkinst2',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
             [8,'Tommy3'      ,'Atkins3' ,'atkinst3',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
-            [9,'Tommy4'      ,'Atkins4' ,'atkinst4',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef],
+            [9,'Tommy4'      ,'Atkins4' ,'atkinst4',undef                             ,undef             ,undef  ,undef ,undef   ,undef,undef,undef,undef,undef]],
        
      
 }

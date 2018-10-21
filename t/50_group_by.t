@@ -252,13 +252,57 @@ my $tests = [
             sql    => "DELETE FROM people",
         },
     },
-   
+   {
+    caption  => "group by with 2 elements and 2 view_elements",
+        key   => 'gather',
+        gather => {
+              elements => [
+            {
+              name => 'first_name',
+              view => 'people'
+            },
+            { name => 'user_id',
+              view => 'people'
+            }
+        ],
+        view_elements => [
+             {
+               name => 'first_name',
+               view => 'people'
+            },
+            {
+              function => 'count',
+              left     => { name => 'user_id',
+                            view => 'people'}
+            }      
+        ],
+        },
+        retrieve => {
+            sql =>
+"SELECT people.first_name, COUNT(people.user_id) FROM people GROUP BY people.first_name, people.user_id",
+        },
+        create  => {
+            container => $container,
+            sql =>
+              "INSERT INTO people ( first_name, last_name ) VALUES( ?, ? )",
+            params =>  [ 'Bill', 'Bloggings' ]
+        },
+        update => {
+            container => $container,
+            sql =>
+"UPDATE people SET first_name = ?, last_name = ?",
+            params => [ 'Bill', 'Bloggings' ]
+        },
+        delete => {
+            sql    => "DELETE FROM people",
+        },
+    },
 ];
 
 
 
 
-use Test::More  tests => 34;
+use Test::More  tests => 40;
 
 my $utils =  Test::Utils->new();
 

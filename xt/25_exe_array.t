@@ -40,7 +40,7 @@ $da->add_condition({
 
 $da->retrieve($dbh);
 
-my $all_people = $user_db->_people_data();
+my $all_people = $user_db->people_data();
 splice($all_people,0,5);
 
 cmp_deeply( $da->result()->set, $all_people,

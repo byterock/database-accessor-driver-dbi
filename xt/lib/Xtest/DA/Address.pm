@@ -48,7 +48,8 @@ has da => (
                                                 {name=>'region_id'},
                                                 {name=>'street'},
                                                 {name=>'postal_code'},],
-                                    no_retrieve=>1,});
+                                    #no_retrieve=>1,
+                                    });
                 
 }
 
