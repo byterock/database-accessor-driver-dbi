@@ -103,7 +103,13 @@ has updated_people_data => (
     builder => "_updated_people_data",
     lazy    => 1,
 );
-
+has regions_count_data 
+ => (
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    builder => "_regions_count_data",
+    lazy    => 1,
+);
 has dbh => (
     is  => 'rw',
     isa => 'Object'
@@ -185,6 +191,16 @@ sub _persons_data {
 
 }
 
+
+sub _regions_count_data {
+      my $self = shift;
+      return [['NA',2],
+              ['West',2],
+              [ undef,0],
+              
+ ];
+
+}
 sub _people_data {
       my $self = shift;
       return [[1,'Bill'     ,'Master' ,'masterb ',1,'1414 New lane','Toronto'  ,'M5H-1E6',2,'Canada',21,'NA',1,'EST'],

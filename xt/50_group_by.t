@@ -33,6 +33,42 @@ cmp_deeply( $da->result()->set, $regions,
 
 
 # warn(Dumper($da->result()));
+
+my $regions_count = $user_db->regions_count_data();
+
+$da->only_elements({});
+
+$da->add_gather({elements => [{name => 'description',
+                               view => 'region'}],
+                 view_elements=>[{name => 'description',
+                               view => 'region'},
+                              {function => 'count',
+                                left    => { name => 'description',
+                                             view => 'region' }
+                              },]});
+            
+$da->retrieve($dbh);
+cmp_deeply( $da->result()->set, $regions_count,
+            "3 regions selected with proper counts");
+         
+
+
+$da->add_gather({elements => [{name => 'user_id',
+                               view => 'people'},
+                               {name => 'salary',
+                               view => 'people'}],
+                 view_elements=>[{name => 'user_id',
+                                  view => 'people'},
+                                 {name => 'salary',
+                                  view => 'people'},]
+                });
+    $da->reset_sorts();        
+$da->retrieve($dbh);
+ok( $da->result()->is_error,"Cannot do back door select");
+
+          
+
+exit;
 exit;
 
 

@@ -8,6 +8,7 @@ sub _create_sql {
      LAST_NAME VARCHAR2(200),
      FIRST_NAME VARCHAR2(200), 
      USER_ID CHAR(8), 
+     SALARY NUMBER, 
      CONSTRAINT PEOPLE_PK PRIMARY KEY ("ID") ENABLE
    )',
    'create sequence people_seq minvalue 1 maxvalue 999999999999999999999999999 increment by 1 start with 1 cache 20 noorder nocycle',
