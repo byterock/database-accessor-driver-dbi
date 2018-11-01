@@ -11,7 +11,7 @@ use Data::Dumper;
 use Xtest::DB::Users;
 use Xtest::DA::Person;
 use Test::Deep qw(cmp_deeply);
-
+use Test::Fatal;
 my $user_db = Xtest::DB::Users->new();
 my $dbh = $user_db->connect();
 my $updated_people = $user_db->updated_people_data();
@@ -62,19 +62,19 @@ $da->add_gather({elements => [{name => 'user_id',
                                  {name => 'salary',
                                   view => 'people'},]
                 });
-    $da->reset_sorts();        
-$da->retrieve($dbh);
-ok( $da->result()->is_error,"Cannot do back door select");
-
-          
-
-exit;
-exit;
-
-
+    $da->reset_sorts();     
+    
+     
+       like(
+    exception {$da->retrieve($dbh) },
+    qr /not in the elements array! Only elements from that array can be added/,
+    "Cannot do back door select with gather"
+);
 
 
 
+$da->reset_conditions();
+$da->reset_gather();
 
 $da->add_condition( {
                

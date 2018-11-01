@@ -313,7 +313,7 @@ sub _predicate_sql {
     my $self = shift;
     my ($predicate,$view) = @_;
 
-    # warn("_predicate_sql".Dumper($predicate));
+     # warn("_predicate_sql".Dumper($predicate));
     my $clause = "";
     $clause .= " " . $predicate->condition() . " "
       if ( $predicate->condition() );

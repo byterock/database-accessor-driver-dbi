@@ -32,51 +32,51 @@ $da->add_condition( {
 $da->retrieve($dbh);
 cmp_deeply( $da->result()->set, $updated_people,
             "All 4 users retrieved correctly with function");
-$da->reset_sorts();
-$da->add_sort({name=>'salary',
-               view=>'people',
-                descending => 1});
+# $da->reset_sorts();
+# $da->add_sort({name=>'salary',
+               # view=>'people',
+                # descending => 1});
 
-$da->retrieve($dbh);
+# $da->retrieve($dbh);
 # warn("da=".Dumper($da->result));
 
-$da->reset_links();
-$da->add_link({
-                type       => 'right',
-                to         => { name => 'people',
-                                    alias   => 'p2' },
-                conditions => [
-                    {
-                        left  => { name => 'id',
-                                   view => 'p2' },
-                        right => {
-                            name => 'id',
-                            view => 'people'
-                        }
-                    },
-                   {
-                        left  => { name => 'salary',
-                                   view =>'p2' },
-                        right => {
-                            value => '5',
-                        },
-                       operator=>">",
-                       condition=>'AND'
-                    }
-                ]
-            }
-);
-$da->reset_conditions();
-# $da->add_condition( {
-                # left =>{ name => 'id',
-                        # view   => 'people' },,
-                # right     => { value => '6' },
-                # operator  => '>',
-            # },);
-$da->retrieve($dbh);
-warn("da=".Dumper($da->result));
+# $da->reset_links();
+# $da->add_link({
+                # type       => 'right',
+                # to         => { name => 'people',
+                                    # alias   => 'p2' },
+                # conditions => [
+                    # {
+                        # left  => { name => 'id',
+                                   # view => 'p2' },
+                        # right => {
+                            # name => 'id',
+                            # view => 'people'
+                        # }
+                    # },
+                   # {
+                        # left  => { name => 'salary',
+                                   # view =>'p2' },
+                        # right => {
+                            # value => '5',
+                        # },
+                       # operator=>">",
+                       # condition=>'AND'
+                    # }
+                # ]
+            # }
+# );
+# $da->reset_conditions();
+# # $da->add_condition( {
+                # # left =>{ name => 'id',
+                        # # view   => 'people' },,
+                # # right     => { value => '6' },
+                # # operator  => '>',
+            # # },);
+# $da->retrieve($dbh);
+# warn("da=".Dumper($da->result));
 
-exit;
+# exit;
 $da->reset_conditions();
 
 $da->add_condition( 
@@ -102,23 +102,28 @@ cmp_deeply( $da->result()->set, $people,
 
 shift(@{$people});
 $da->reset_conditions();
-$da->add_condition( 
+$da->add_condition( [
 {               condition => 'AND',
                 left => {
                     expression => '*',
                     left       => { name => 'id' },
-                    right      => { param => '3' }
+                    right      => { param => '1' }
                 },
-                right     => { value => '6' },
-                operator  => '!=',
-            }
+                right     => { value => '4' },
+                operator  => '<='},
+            {condition => 'AND',
+                left => { name => 'id' },
+                right     => { value => '3' },
+                operator  => '>=', }]
 );
 $da->retrieve($dbh);
 cmp_deeply( $da->result()->set, $people,
             "correct 2 users selected with two expressions");
 
 
-
+# warn("da=".Dumper($da->result()->set()));
+# warn(Dumper($people));
+# exit;
 $da->reset_conditions();
 
  
@@ -149,15 +154,14 @@ cmp_deeply( $da->result()->set, $updated_people,
             "correct 3 users selected with case statement");
             
 $da->reset_conditions();
-$da->add_condition( 
-{               condition => 'AND',
-                left   => { name => 'salary' },
-                right  => { value => '5' },
-                operator  => '>',
-            }
-);
-$da->retrieve($dbh);
+# $da->add_condition( 
+# {               condition => 'AND',
+                # left   => { name => 'salary' },
+                # right  => { value => '5' },
+                # operator  => '>',
+            # }
+# );
+# $da->retrieve($dbh);
 
-ok( scalar($da->result()->set()) == 0,"No records returned");
+# ok( scalar($da->result()->set()) == 0,"No records returned");
 
-warn("da=".Dumper($da))
