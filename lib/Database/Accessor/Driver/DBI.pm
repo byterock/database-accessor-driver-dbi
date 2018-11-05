@@ -10,6 +10,7 @@ use Data::Dumper;
 use Database::Accessor::Constants;
 use Database::Accessor::Driver::DBI::SQL;
 use JSON qw(encode_json);
+use Carp 'confess';
 use Moose;
 with(qw( Database::Accessor::Roles::Driver));
 
@@ -321,7 +322,7 @@ sub _predicate_sql {
     $clause .= Database::Accessor::Driver::DBI::SQL::OPEN_PARENS . " "
       if ( $predicate->open_parentheses() );
 
-    my $message = "Database::Accessor::Driver::DBI::Error->Operator ";
+    my $message = "Database::Accessor::Driver::DBI Operator Error: ";
     if ( Database::Accessor::Driver::DBI::SQL::SIMPLE_OPERATORS
         ->{ $predicate->operator } )
     {
@@ -347,7 +348,7 @@ sub _predicate_sql {
         or $predicate->operator eq Database::Accessor::Driver::DBI::SQL::ANY )
     {
 
-        die "$message '"
+        confess "$message '"
           . $predicate->operator
           . "' left must be a Database::Accessor::Param with the value pointing to a Database::Accessor. Not a "
           . ref( $predicate->left ) . "!"
@@ -365,12 +366,12 @@ sub _predicate_sql {
         Database::Accessor::Driver::DBI::SQL::NOT_LIKE )
     {
 
-        die(    "$message '"
+        confess(    "$message '"
               . $predicate->operator
               . "' left can not be an Array Ref!" )
           if ( ref( $predicate->left() ) eq 'ARRAY' );
 
-        die(    "$message '"
+        confess(    "$message '"
               . $predicate->operator
               . "' right can not be an Array Ref!" )
           if ( ref( $predicate->right() ) eq 'ARRAY' );
@@ -382,10 +383,10 @@ sub _predicate_sql {
     elsif (
         $predicate->operator eq Database::Accessor::Driver::DBI::SQL::BETWEEN )
     {
-        die("$message 'BETWEEN' right must be an Array Ref of two parameters!")
+        confess("$message 'BETWEEN' right must be an Array Ref of two parameters!")
           if ( ( ref( $predicate->right() ) ne 'ARRAY' )
             or scalar( @{ $predicate->right() } ) != 2 );
-        die("$message 'BETWEEN' left can not be an Array Ref!")
+        confess("$message 'BETWEEN' left can not be an Array Ref!")
           if ( ref( $predicate->left() ) eq 'ARRAY' );
 
         $clause .= join(
@@ -403,7 +404,7 @@ sub _predicate_sql {
         Database::Accessor::Driver::DBI::SQL::NOT_IN )
     {
 
-        die(    "$message '"
+        confess(    "$message '"
               . $predicate->operator
               . "' left can not be an Array Ref!" )
           if ( ref( $predicate->left() ) eq 'ARRAY' );
@@ -415,7 +416,7 @@ sub _predicate_sql {
                   if (  ref($param) eq "Database::Accessor::Param"
                     and ref( $param->value ) eq "Database::Accessor" );
             }
-            die(    "$message '"
+            confess(    "$message '"
                   . $predicate->operator
                   . "' Array Ref can not contain a Database::Accessor" )
               if ( $not_count
@@ -522,8 +523,8 @@ sub _field_sql {
                   ->{ $element->function }
             )
           );
-        die(
-"Database::Accessor::Driver::DBI::Error->Element! An Element can have only one Aggregate function! "
+        confess(
+"Database::Accessor::Driver::DBI element Error: An element can have only one Aggregate function! "
               . $element->function
               . " is not valid" )
           if ( $self->_aggregate_count() >= 2 );
@@ -682,7 +683,7 @@ sub _select {
 sub _die_on_identity {
     my $self = shift;
     my ($action, $field)    = @_;
-           die "Database::Accessor::Driver::DBI::Error->"
+           confess "Database::Accessor::Driver::DBI $action Error:"
         . "Attempt to use identity element: "
         . $field
         . " in an "
